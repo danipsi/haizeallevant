@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seguiment del desenvolupament infantil</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        :root {
+            --left-column-width: 200px; /* Valor per defecte per a escriptori */
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; 
+        }
+        .tooltip {
+            position: absolute;
+            background-color: #333;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            z-index: 10000; 
+            pointer-events: none; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            max-width: 250px; 
+            white-space: normal; 
+        }
+        
+        .input-container, .info-container, .legal-container {
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 12px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
+            margin-bottom: 1.5rem;
+        }
+        .info-container p, .legal-container p {
+            margin-bottom: 0.5rem;
+            line-height: 1.6;
+            color: #4A5568;
+        }
+         .info-container strong, .legal-container strong {
+            color: #2D3748;
+        }
+         .legal-container {
+            font-size: 0.875rem;
+            border-left: 4px solid #3B82F6;
+       }
+
+        .fites-chart-container {
+            position: relative; 
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            overflow-x: auto; 
+            overflow-y: auto; 
+            max-height: 70vh; 
+            padding-top: 0; 
+        }
+
+        .timeline-header {
+            display: flex;
+            position: sticky; 
+            top: 0; 
+            background-color: white; 
+            z-index: 990; 
+            border-bottom: 1px solid #e2e8f0; 
+            min-width: fit-content; 
+        }
+        .timeline-header-space { 
+            width: var(--left-column-width); 
+            min-width: var(--left-column-width); 
+            flex-shrink: 0; 
+            border-right: 1px solid #e2e8f0; 
+            box-sizing: border-box; 
+            background-color: white; 
+            position: sticky; /* Assegura que es quedi fix amb la resta de la columna */
+            left: 0;
+            z-index: 990; /* Mateix nivell que la capçalera dels mesos */
+        }
+
+        .timeline-month {
+            width: var(--month-col-width, 35px); 
+            min-width: var(--month-col-width, 35px); 
+            text-align: center;
+            font-size: 0.75rem; 
+            color: #718096; 
+            padding: 8px 0; 
+            border-left: 1px solid #e2e8f0; 
+            box-sizing: border-box; 
+        }
+        
+        #categoriesContainer {
+            padding-left: 0; 
+            min-width: fit-content; 
+            padding-top: 10px; 
+            position: relative; 
+        }
+
+        .category-row {
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed #cbd5e0; 
+        }
+        .category-row:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .category-row-title {
+            font-weight: 600; 
+            color: #2d3748; 
+            font-size: 1.1rem;
+            line-height: 1.4;
+            margin-bottom: 0.25rem; 
+            /* Estils per a columna fixa */
+            position: sticky;
+            left: 0;
+            width: var(--left-column-width);
+            min-width: var(--left-column-width);
+            padding-left: 10px; 
+            padding-right: 10px; /* Espai intern a la dreta */
+            background-color: white;
+            z-index: 980; 
+            border-right: 1px solid #e2e8f0;
+            box-sizing: border-box;
+            overflow-wrap: break-word; /* Per trencar paraules llargues */
+        }
+
+        .category-instruction-text {
+            font-size: 0.9rem; 
+            color: #4A5568; 
+            margin-bottom: 10px; 
+            font-style: italic; 
+            /* Estils per a columna fixa */
+            position: sticky;
+            left: 0;
+            width: var(--left-column-width);
+            min-width: var(--left-column-width);
+            padding-left: 10px;
+            padding-right: 10px; /* Espai intern a la dreta */
+            background-color: white;
+            z-index: 980;
+            border-right: 1px solid #e2e8f0;
+            box-sizing: border-box;
+        }
+
+        .no-break-text { /* Aplicat a la instrucció per evitar trencaments interns no desitjats */
+            white-space: nowrap;
+        }
+
+        .fita-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            min-height: 30px; 
+            transition: background-color 0.2s ease-in-out;
+        }
+        .fita-seleccionada {
+            background-color: #eef2ff; 
+        }
+
+        .fita-name-container {
+            /* Amplada controlada per la variable CSS */
+            width: var(--left-column-width);
+            min-width: var(--left-column-width); /* Assegura que no s'encongeixi */
+            padding-left: 10px; /* Unificat */
+            padding-right: 10px; /* Unificat */
+            font-size: 0.8rem; 
+            color: #4a5568; 
+            display: flex;
+            align-items: center;
+            flex-shrink: 0; 
+            cursor: default; 
+            box-sizing: border-box;
+            position: sticky;
+            left: 0;
+            background-color: white; 
+            z-index: 980; /* Mateix nivell que títols de categoria */
+            border-right: 1px solid #e2e8f0; 
+        }
+        .fita-name-container input[type="checkbox"] {
+            margin-right: 6px; 
+            cursor: pointer;
+            width: 16px; 
+            height: 16px; 
+        }
+
+        .fita-bars-outer-container { 
+            position: relative; 
+            height: 20px;
+            flex-grow: 1; 
+        }
+
+        .fita-bars-container { 
+            position: relative; 
+            height: 100%; 
+        }
+
+        .fita-bar {
+            position: absolute;
+            height: 100%;
+            display: flex; 
+            border-radius: 4px; 
+            overflow: hidden; 
+            cursor: default; 
+        }
+        
+        .fita-bar-segment1 { 
+            background-color: #7DD3FC; 
+            height: 100%;
+        }
+        .fita-bar-segment2 { 
+            background-color: #0EA5E9; 
+            height: 100%;
+        }
+        .fita-bar:hover .fita-bar-segment1 { background-color: #38BDF8; }
+        .fita-bar:hover .fita-bar-segment2 { background-color: #0284C7; }
+
+        .age-line {
+            position: absolute;
+            width: 2px; 
+            background-color: #f56565; 
+            z-index: 995; 
+            display: none; 
+        }
+        
+        .vertical-guide-line {
+            position: absolute;
+            top: 0; 
+            bottom: 0; 
+            width: 1px;
+            background-color: #e2e8f0; 
+            z-index: 1; 
+        }
+
+        #verticalGuideLinesContainer {
+            position: absolute;
+            pointer-events: none; 
+            z-index: 0; 
+        }
+
+        .signe-alerta-item-container { 
+            display: flex;
+            align-items: center;
+            padding: 10px; margin-bottom: 8px; border-radius: 8px;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            border: 1px solid #e2e8f0; cursor: default;
+        }
+        .signe-alerta-item-container:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .signe-alerta-item-container input[type="checkbox"] {
+            margin-right: 10px;
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+        .alerta-activa { background-color: #fecaca; color: #c53030; border-color: #f56565; font-weight: bold;} 
+        .no-esperada-alerta { background-color: #e2e8f0; color: #4a5568; border-color: #cbd5e0;}
+
+        @media (max-width: 768px) {
+            :root {
+                 --left-column-width: 150px; /* Amplada per a mòbils */
+            }
+            .grid.md\:grid-cols-3 > div { margin-bottom: 0.5rem; } 
+            /* .timeline-header-space i .fita-name-container ja usen la variable --left-column-width */
+            /* Els paddings i font-size de .fita-name-container es poden ajustar aquí si cal més control que només l'amplada */
+            .fita-name-container {
+                font-size: 0.75rem; 
+                padding-left: 10px; /* Mantingut a 10px per consistència */
+                padding-right: 10px;
+            }
+             .fita-name-container input[type="checkbox"] { margin-right: 4px; }
+            
+            .category-row-title, .category-instruction-text {
+                 padding-left: 10px; 
+                 padding-right: 10px;
+                 /* L'amplada ja es gestiona amb --left-column-width que canvia en mòbil */
+            }
+        }
+    </style>
+</head>
+<body class="p-4 md:p-6">
+
+    <div class="container mx-auto max-w-7xl">
+        <header class="mb-6 text-center">
+            <h1 class="text-2xl md:text-3xl font-bold text-gray-800">Eina de seguiment del desenvolupament psicomotor infantil</h1>
+            <p class="text-md text-gray-600 mt-2">Eina per a la detecció d'indicadors de seguiment en el desenvolupament.</p>
+        </header>
+
+        <div class="info-container">
+            <h2 class="text-lg font-semibold text-gray-700 mb-2">Instruccions d'ús:</h2>
+            <p>Aquesta eina està dissenyada per ajudar a identificar possibles indicadors que requereixin un seguiment en el desenvolupament psicomotor de l'infant.</p>
+            <p><strong>Com utilitzar-la:</strong></p>
+            <ul class="list-disc list-inside ml-4 text-gray-700">
+                <li>Introduïu el nom de l'infant (opcional). Per respectar la privacitat, podeu utilitzar sigles o un nom fictici.</li>
+                <li>Introduïu la data de naixement de l'infant o la seva edat en mesos.</li>
+                <li>A la taula de fites, marqueu aquelles fites que l'infant <strong>encara NO ha assolit</strong>. Les barres de colors mostren els rangs d'edat esperats (blau clar: 50-75% dels infants l'assoleixen; blau fosc: 75-95%).</li>
+                <li>A la secció de "Signes d'alerta", marqueu aquells signes que <strong>SÍ observeu</strong> en l'infant.</li>
+                <li>Finalment, podeu desar un informe en PDF amb la informació registrada.</li>
+            </ul>
+            <p class="mt-3 text-sm text-gray-600">L'objectiu és facilitar una primera valoració visual. Si detecteu diverses fites no assolides (especialment si l'edat de l'infant supera el percentil 95% per a aquestes fites) o la presència de signes d'alerta, es recomana una valoració més exhaustiva per part d'un professional.</p>
+        </div>
+
+
+        <div class="input-container">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div>
+                    <label for="nomInfant" class="block text-sm font-medium text-gray-700 mb-1">Nom/Identificador de l'infant:</label>
+                    <input type="text" id="nomInfant" name="nomInfant" placeholder="Ex: J.P.G. o Nen/a 1"
+                           class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                <div>
+                    <label for="dataNaixement" class="block text-sm font-medium text-gray-700 mb-1">Data de naixement:</label>
+                    <input type="date" id="dataNaixement" name="dataNaixement"
+                           class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                <div>
+                    <label for="edatInfant" class="block text-sm font-medium text-gray-700 mb-1">Edat (mesos):</label>
+                    <input type="number" id="edatInfant" name="edatInfant" min="0" 
+                           class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500" placeholder="Ex: 12">
+                </div>
+            </div>
+        </div>
+
+        <div class="fites-chart-container" id="fitesChartContainer">
+            <div class="timeline-header" id="timelineHeader">
+                <div class="timeline-header-space"></div> 
+            </div>
+            <div id="categoriesContainer"></div>
+            <div id="verticalGuideLinesContainer"></div>
+            <div class="age-line" id="ageLine"></div>
+        </div>
+        
+        <div class="mt-8">
+            <h2 class="text-xl font-semibold text-gray-700 mb-3" id="signesAlertaTitle">Signes d'alerta (marqueu els presents)</h2>
+            <div id="signesAlertaContainer" class="bg-white p-4 rounded-md shadow grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3"></div>
+        </div>
+
+        <div class="legal-container mt-8">
+            <h3 class="text-md font-semibold text-gray-700 mb-1">Avís de privacitat i ús de dades:</h3>
+            <p>Aquesta eina està dissenyada per a ús local. <strong>No s'emmagatzema cap informació personal ni dada introduïda en servidors externs.</strong></p>
+            <p>El document PDF generat es desa únicament al vostre dispositiu local. És responsabilitat de l'usuari gestionar aquest arxiu d'acord amb les normatives de protecció de dades aplicables.</p>
+            <p>Es recomana l'ús d'identificadors anònims (sigles, codis) per referir-se als infants.</p>
+        </div>
+
+        <div class="mt-8 mb-12 text-center">
+            <button id="desarPdfBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg shadow-md hover:shadow-lg transition duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50">
+                Desar informe de seguiment en PDF
+            </button>
+        </div>
+    </div>
+
+    <div id="tooltip" class="tooltip hidden"></div>
+
+    <script>
+        const MAX_MESOS_GRAFIC = 30; 
+        const MONTH_COLUMN_WIDTH_PX = 35; 
+        const FITA_NAME_SPACE_PX_DESKTOP = 200; 
+        const FITA_NAME_SPACE_PX_MOBILE = 150; 
+
+        document.documentElement.style.setProperty('--max-mesos', MAX_MESOS_GRAFIC);
+        document.documentElement.style.setProperty('--month-col-width', `${MONTH_COLUMN_WIDTH_PX}px`);
+        
+        // Funció per actualitzar la variable CSS de l'amplada de la columna esquerra
+        function updateLeftColumnWidth() {
+            const currentWidth = window.innerWidth <= 768 ? FITA_NAME_SPACE_PX_MOBILE : FITA_NAME_SPACE_PX_DESKTOP;
+            document.documentElement.style.setProperty('--left-column-width', `${currentWidth}px`);
+        }
+        // Crida inicial per establir l'amplada correcta
+        updateLeftColumnWidth();
+
+        let edatPrecisaInfant = {
+            totalMesosComplets: null,
+            diesTranscorregutsEnMesActual: null,
+            diesEnElMesActualDeEdat: null
+        };
+
+        const dadesDesenvolupament = { 
+            categories: [
+                {
+                    nom: "Postural",
+                    fites: [
+                        { nomFita: "REDREÇAMENT CEFALIC PRONO", edat_50: 1, edat_75: 1.8, edat_95: 3.5, detall: "L'infant aixeca i aguanta el cap estant de bocaterrosa." },
+                        { nomFita: "PULL TO SIT: FLEXIÓ CEFÀLICA", edat_50: 4, edat_75: 5, edat_95: 7.5, detall: "En estirar-lo pels braços per asseure'l, el cap acompanya el moviment del tronc sense quedar enrere." },
+                        { nomFita: "PRONO RECOLZA AVANTBRAÇ", edat_50: 2, edat_75: 3, edat_95: 4.8, detall: "Estant de bocaterrosa, es recolza sobre els avantbraços aixecant cap i espatlles." },
+                        { nomFita: "VOLTEIG", edat_50: 6.3, edat_75: 7, edat_95: 8.8, detall: "És capaç de girar sobre si mateix, passant de panxa enlaire a bocaterrosa o viceversa." },
+                        { nomFita: "ES MANTÉ ASSEGUT ESTABLEMENT", edat_50: 7.3, edat_75: 8, edat_95: 9.5, detall: "Pot seure sense suport i mantenir l'equilibri." },
+                        { nomFita: "REAC PARACAIGUDISTES LATERALS", edat_50: 6.3, edat_75: 7.2, edat_95: 9, detall: "En inclinar-lo lateralment assegut, estén el braç del costat de la inclinació per recolzar-se." },
+                        { nomFita: "PASSA A SEURE SENSE AJUT", edat_50: 9, edat_75: 10.5, edat_95: 12.5, detall: "Pot passar d'estar estirat a assegut per si mateix." },
+                        { nomFita: "ES POSA DRET", edat_50: 12.4, edat_75: 14.3, edat_95: 16.1, detall: "S'aixeca fins a posar-se dret, agafant-se a algun suport." },
+                        { nomFita: "ES MANTÉ DRET RECOLZAT", edat_50: 8.2, edat_75: 9, edat_95: 11, detall: "Aguanta dret amb suport." },
+                        { nomFita: "MARXA SOL", edat_50: 12.5, edat_75: 14.5, edat_95: 15.9, detall: "Camina de manera autònoma sense ajuda (fa cinc passes lliurement)." },
+                        { nomFita: "BAIXA ESCALES", edat_50: 18, edat_75: 21, edat_95: 24, detall: "Pot baixar escales, inicialment amb ajuda o recolzant-se." },
+                        { nomFita: "CARRERA LLIURE", edat_50: 15, edat_75: 16, edat_95: 20, detall: "Corre de manera fluida." },
+                        { nomFita: "XUTA PILOTA", edat_50: 21, edat_75: 22, edat_95: 26, detall: "Pot donar una puntada de peu a una pilota." }
+                    ]
+                },
+                {
+                    nom: "Manipulació",
+                    fites: [
+                        { nomFita: "DIRIGEIX MÀ", edat_50: 4.2, edat_75: 4.8, edat_95: 5.8, detall: "Porta la mà cap a un objecte amb intenció." },
+                        { nomFita: "AJUNTA MANS", edat_50: 2.2, edat_75: 3.2, edat_95: 4, detall: "Junta les mans a la línia mitjana del cos." },
+                        { nomFita: "PASSA OBJECTES DE MÀ", edat_50: 5.5, edat_75: 6.3, edat_95: 8, detall: "És capaç de passar un objecte d'una mà a l'altra." },
+                        { nomFita: "TREU MOCADOR", edat_50: 5.7, edat_75: 6.4, edat_95: 7.5, detall: "Es treu un mocador o drap que li cobreix la cara." },
+                        { nomFita: "PINÇA SUPERIOR", edat_50: 8.5, edat_75: 11.5, edat_95: 13.5, detall: "Agafa objectes petits utilitzant el dit polze i l'índex (pinça fina)." },
+                        { nomFita: "APUNTA AMB L'INDEX", edat_50: 10.2, edat_75: 12.5, edat_95: 16.1, detall: "Assenyala objectes o persones amb el dit índex." },
+                        { nomFita: "FA TORRE DE 2 CUBS", edat_50: 15, edat_75: 16.8, edat_95: 21, detall: "Apila dos cubs per fer una torre." },
+                        { nomFita: "PASSA PÀGINES LLIBRE", edat_50: 13, edat_75: 16, edat_95: 21, detall: "Pot passar les pàgines d'un llibre (inicialment vàries a la vegada)." },
+                        { nomFita: "TAPA BOLÍGRAF", edat_50: 16, edat_75: 20, edat_95: 24, detall: "Posa la tapa a un bolígraf o retolador." },
+                        { nomFita: "FA GÀRGOTS ESPONTÀNIAMENT", edat_50: 13, edat_75: 15, edat_95: 22, detall: "Fa gargots amb un llapis sobre un paper de manera espontània." },
+                        { nomFita: "FA TORRE DE 4 CUBS", edat_50: 17, edat_75: 20, edat_95: 24, detall: "Apila quatre cubs per fer una torre." }
+                    ]
+                },
+                {
+                    nom: "Llenguatge",
+                    fites: [
+                        { nomFita: "ATÉN LES CONVERSES", edat_50: 1.9, edat_75: 2.3, edat_95: 4.8, detall: "Para atenció a les converses dels adults." },
+                        { nomFita: "FA RIALLES", edat_50: 3, edat_75: 4, edat_95: 5.8, detall: "Riu de manera espontània o en resposta a estímuls." },
+                        { nomFita: "BALBUCEIG", edat_50: 5.6, edat_75: 6.2, edat_95: 7.8, detall: "Emet sons vocàlics i consonàntics repetitius (ba-ba, da-da)." },
+                        { nomFita: "RECONEIX EL SEU NOM", edat_50: 8.8, edat_75: 10.5, edat_95: 12, detall: "Gira el cap o mostra reconeixement quan sent el seu nom." },
+                        { nomFita: "COMPRÈN SIGN. ALGUNES PARAULES", edat_50: 10.1, edat_75: 11.3, edat_95: 13.5, detall: "Comprèn el significat d'algunes paraules familiars (mare, pare, aigua)." },
+                        { nomFita: "OBEEIX ORDRES PER GESTOS", edat_50: 10.5, edat_75: 14.1, edat_95: 18.2, detall: "Segueix ordres simples acompanyades de gestos (adona'm, mira)." },
+                        { nomFita: "PAPA, MAMA, ESPECÍF.", edat_50: 7.6, edat_75: 8.8, edat_95: 9.6, detall: "Diu 'papa' i 'mama' referint-se específicament als seus progenitors." },
+                        { nomFita: "COMPRÈN UNA PROHIBICIÓ", edat_50: 8.3, edat_75: 10.4, edat_95: 14.8, detall: "Entén el 'no' o una negació." },
+                        { nomFita: "UTILITZA LA PARAULA NO", edat_50: 17, edat_75: 20, edat_95: 24, detall: "Comença a utilitzar la paraula 'no' amb intenció." },
+                        { nomFita: "ASSENYALA PART DEL SEU COS", edat_50: 17, edat_75: 21, edat_95: 24, detall: "Assenyala parts del seu cos quan se li demana (nas, ulls, boca)." },
+                        { nomFita: "ANOMENA OBJ. DIBUIXAT", edat_50: 19, edat_75: 22, edat_95: 25, detall: "Anomena objectes comuns representats en dibuixos." },
+                        { nomFita: "UNEIX 2 PARAULES", edat_50: 19.8, edat_75: 21, edat_95: 25, detall: "Comença a formar frases de dues paraules (nen cotxe, aigua vull)." }
+                    ]
+                },
+                {
+                    nom: "Sociabilitat",
+                    fites: [
+                        { nomFita: "REAC VEU", edat_50: 1, edat_75: 2.3, edat_95: 3.1, detall: "Reacciona a la veu humana (es gira, es calma, etc.)." },
+                        { nomFita: "SOMRIURE MARE", edat_50: 1.2, edat_75: 1.9, edat_95: 4, detall: "Somriu en resposta a la cara o veu de la mare o cuidador principal." },
+                        { nomFita: "PERS. OPTICA VERT.", edat_50: 2.5, edat_75: 3.2, edat_95: 4.5, detall: "Segueix un objecte amb la mirada en moviment vertical." },
+                        { nomFita: "MIRA LES MANS", edat_50: 2.2, edat_75: 3.1, edat_95: 4.5, detall: "Observa les seves pròpies mans." },
+                        { nomFita: "PERS. OPTICA HOR.", edat_50: 2.5, edat_75: 4, edat_95: 5.5, detall: "Segueix un objecte amb la mirada en moviment horitzontal." },
+                        { nomFita: "IMITA GESTOS", edat_50: 9.2, edat_75: 11, edat_95: 13, detall: "Imita gestos simples que fan els altres (aplaudir, dir adéu)." },
+                        { nomFita: "JUGA A L'AMAGATALL", edat_50: 6.7, edat_75: 7.8, edat_95: 12.2, detall: "Participa en jocs d'amagar i aparèixer (cucú-tast)." },
+                        { nomFita: "BUSCA OBJECTE DESAPAREGUT", edat_50: 7.3, edat_75: 8.4, edat_95: 10.5, detall: "Busca un objecte que ha vist amagar (permanència de l'objecte)." },
+                        { nomFita: "PORTA GOT A LA BOCA", edat_50: 12, edat_75: 13.8, edat_95: 17.6, detall: "Agafa un got i se'l porta a la boca per beure (pot vessar)." },
+                        { nomFita: "BUSCA OBJECTE CAIGUT", edat_50: 5.8, edat_75: 6.8, edat_95: 8, detall: "Busca un objecte que li ha caigut." },
+                        { nomFita: "MENJA AMB CULLERA", edat_50: 14, edat_75: 16, edat_95: 26, detall: "Intenta menjar sol amb una cullera (pot necessitar ajuda)." },
+                        { nomFita: "AJUDA QUAN EL VESTEIXEN", edat_50: 8.2, edat_75: 13, edat_95: 16, detall: "Col·labora quan el vesteixen (aixeca els braços, les cames)." },
+                        { nomFita: "DONA MENJAR ALS NINOTS", edat_50: 18, edat_75: 26, edat_95: 30, detall: "Imita l'acció de donar menjar a ninos o peluixos." },
+                        { nomFita: "IMITA TASQUES CASA", edat_50: 14, edat_75: 15.6, edat_95: 18.5, detall: "Imita tasques domèstiques simples (escombrar, netejar)." },
+                        { nomFita: "AJUDA A RECOLLIR JOGUINES", edat_50: 16, edat_75: 21, edat_95: 26, detall: "Col·labora en recollir les seves joguines si se li demana." },
+                        { nomFita: "COMPLEIX DUES ORDRES", edat_50: 19, edat_75: 22, edat_95: 25, detall: "Pot seguir dues ordres consecutives no relacionades (agafa la pilota i seu a la cadira)." }
+                    ]
+                }
+            ],
+            signesAlerta: [
+                { nomSigne: "Macrocefàlia", edat_des_de: 0, detall: "Perímetre cefàlic (PC) supera +3 desviació estàndard." },
+                { nomSigne: "Microcefàlia", edat_des_de: 0, detall: "PC és inferior a -2 desviació estàndard." },
+                { nomSigne: "Estancament perímetre cefàlic", edat_des_de: 0, detall: "Tres o més mesos sense augment d'aquest, durant el primer any de vida." },
+                { nomSigne: "Moviments oculars anormals", edat_des_de: 0, detall: "Presència de moviments erràtics, nistagme, en 'sol ponent', etc. No s'inclou l'estrabisme." },
+                { nomSigne: "Altres moviments anormals", edat_des_de: 0, detall: "Actitud distònica mans, hiperextensió cefàlica, moviments cefàlics repetitius d'afirmació o negació, etc." },
+                { nomSigne: "Dismòrfies òbvies", edat_des_de: 0, detall: "Malformacions físiques evidents." },
+                { nomSigne: "Arreflectivitat osteotendinosa generalitzada", edat_des_de: 0, detall: "Absència de reflexos en tendons, d'especial valor en rotulians i aquilis." },
+                { nomSigne: "Sobresalt exagerat", edat_des_de: 2, detall: "Per qualsevol soroll inesperat." },
+                { nomSigne: "Polze adduït", edat_des_de: 2, detall: "El dit polze es manté flexionat i tancat dins del puny. Té més valor si és unilateral." },
+                { nomSigne: "Asimetria d'activitat amb les mans", edat_des_de: 3, detall: "Ús predominant o exclusiu d'una mà abans de l'edat esperada per a la lateralització." },
+                { nomSigne: "Passivitat excessiva", edat_des_de: 4, detall: "El nen/a passa la major part del temps dormint o bé quan està despert no reclama l'atenció de l'adult amb sons, plors, etc." },
+                { nomSigne: "Hipertonia adductors / Angle adductors menor de 90%", edat_des_de: 4, detall: "Excessiva tensió als músculs adductors de les cuixes, dificultant la seva separació." },
+                { nomSigne: "Moro persistent / Persisteix Moro", edat_des_de: 6, detall: "El reflex de Moro (resposta de sobresalt amb extensió de braços) persisteix més enllà dels 6 mesos." },
+                { nomSigne: "Patró de conducta repetitiu més del 50% del temps despert", edat_des_de: 8, detall: "Realitza estereotípies com, per exemple, gronxar-se assegut, pronació, supinació avantbraç." },
+                { nomSigne: "Absència desplaçament autònom", edat_des_de: 9, detall: "Incapacitat de desplaçar-se, tot sol, més de 2 metres (gatejar, reptar, caminar)." },
+                { nomSigne: "Irritabilitat permanent", edat_des_de: 12, detall: "Plor incoercible que no es tranquil·litza quan se'l bressola o se l'agafa en braços." },
+                { nomSigne: "Passa constantment d'una activitat a l'altra", edat_des_de: 16, detall: "Dificultat per mantenir l'atenció en una activitat durant un període adequat a la seva edat." },
+                { nomSigne: "Estereotípies verbals", edat_des_de: 24, detall: "Repeteix habitualment de forma automàtica i sense finalitat comunicativa frases estructurades fora de context." },
+                { nomSigne: "Incapacitat per fer joc simbòlic", edat_des_de: 24, detall: "Si el nen/a no és capaç de jugar a reproduir situacions o accions amb els objectes, joguines, ninots o nines, etc." }
+            ]
+        };
+
+        const nomInfantInput = document.getElementById('nomInfant');
+        const dataNaixementInput = document.getElementById('dataNaixement');
+        const edatInfantInput = document.getElementById('edatInfant');
+        const categoriesContainer = document.getElementById('categoriesContainer');
+        const signesAlertaContainer = document.getElementById('signesAlertaContainer');
+        const tooltipElement = document.getElementById('tooltip');
+        const ageLine = document.getElementById('ageLine');
+        const timelineHeader = document.getElementById('timelineHeader');
+        const fitesChartContainer = document.getElementById('fitesChartContainer'); 
+        const verticalGuideLinesContainer = document.getElementById('verticalGuideLinesContainer');
+        const desarPdfBtn = document.getElementById('desarPdfBtn');
+        
+        edatInfantInput.max = MAX_MESOS_GRAFIC;
+
+        function mostrarTooltip(text, event) {
+            tooltipElement.innerHTML = text;
+            tooltipElement.classList.remove('hidden');
+            const tooltipRect = tooltipElement.getBoundingClientRect();
+            const tooltipHeight = tooltipRect.height;
+            const tooltipWidth = tooltipRect.width;
+            const offsetX = 15; 
+            const offsetY = 15;
+            let newX = event.pageX + offsetX;
+            let newY = event.pageY + offsetY;
+            const viewportRight = window.scrollX + window.innerWidth;
+            const viewportBottom = window.scrollY + window.innerHeight;
+            const viewportLeft = window.scrollX;
+            const viewportTop = window.scrollY;
+
+            if (newX + tooltipWidth > viewportRight) { newX = event.pageX - tooltipWidth - offsetX; }
+            if (newX < viewportLeft) { newX = viewportLeft + 5; } 
+            if (newY + tooltipHeight > viewportBottom) { newY = event.pageY - tooltipHeight - offsetY; }
+            if (newY < viewportTop) { newY = viewportTop + 5; } 
+            
+            tooltipElement.style.left = `${newX}px`;
+            tooltipElement.style.top = `${newY}px`;
+        }
+
+        function amagarTooltip() {
+            tooltipElement.classList.add('hidden');
+        }
+        
+        function generarIdSegur(text) {
+            return text.toLowerCase().replace(/[^\wÀ-ÿ-]+/g, '-');
+        }
+
+        function getCurrentTimelineStartOffset() { // Aquesta funció ara retorna l'amplada de la columna esquerra
+            return window.innerWidth <= 768 ? FITA_NAME_SPACE_PX_MOBILE : FITA_NAME_SPACE_PX_DESKTOP;
+        }
+
+        function initTaula() {
+            categoriesContainer.innerHTML = ''; 
+            signesAlertaContainer.innerHTML = ''; 
+            
+            const existingMonths = timelineHeader.querySelectorAll('.timeline-month');
+            existingMonths.forEach(month => month.remove());
+
+            for (let i = 1; i <= MAX_MESOS_GRAFIC; i++) {
+                const monthDiv = document.createElement('div');
+                monthDiv.className = 'timeline-month';
+                monthDiv.textContent = i;
+                timelineHeader.appendChild(monthDiv);
+            }
+            
+            dadesDesenvolupament.categories.forEach(categoria => {
+                const categoriaDiv = document.createElement('div');
+                categoriaDiv.className = 'category-row';
+                
+                const titolCategoria = document.createElement('h4');
+                titolCategoria.className = 'category-row-title';
+                titolCategoria.textContent = categoria.nom; 
+
+                const instruccioText = document.createElement('p');
+                instruccioText.className = 'category-instruction-text no-break-text';
+                instruccioText.innerHTML = `(marqueu les NO&nbsp;assolides)`; 
+
+                const fitesWrapper = document.createElement('div'); 
+                categoria.fites.sort((a, b) => a.edat_50 - b.edat_50);
+
+                categoria.fites.forEach(fita => {
+                    const fitaRowDiv = document.createElement('div');
+                    fitaRowDiv.className = 'fita-row';
+                    fitaRowDiv.id = `fita-row-${generarIdSegur(fita.nomFita)}`;
+                    const nameContainer = document.createElement('div');
+                    nameContainer.className = 'fita-name-container';
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.id = `check-${generarIdSegur(fita.nomFita)}`;
+                    checkbox.dataset.fitaNom = fita.nomFita; 
+                    checkbox.dataset.fitaCategoria = categoria.nom; 
+                    
+                    checkbox.addEventListener('change', function() {
+                        if (this.checked) {
+                            fitaRowDiv.classList.add('fita-seleccionada');
+                        } else {
+                            fitaRowDiv.classList.remove('fita-seleccionada');
+                        }
+                    });
+
+                    const nameSpan = document.createElement('span');
+                    nameSpan.textContent = fita.nomFita;
+                    nameContainer.appendChild(checkbox);
+                    nameContainer.appendChild(nameSpan);
+                    nameContainer.addEventListener('mousemove', (event) => mostrarTooltip(`<strong>${fita.nomFita}</strong><br>${fita.detall}<br><small>Edats: ${fita.edat_50}m (50%) - ${fita.edat_75}m (75%) - ${fita.edat_95}m (95%)</small>`, event));
+                    nameContainer.addEventListener('mouseout', amagarTooltip);
+                    const outerBarsContainer = document.createElement('div'); 
+                    outerBarsContainer.className = 'fita-bars-outer-container';
+                    const barsContainer = document.createElement('div');
+                    barsContainer.className = 'fita-bars-container';
+                    barsContainer.style.width = `${MAX_MESOS_GRAFIC * MONTH_COLUMN_WIDTH_PX}px`; 
+                    const barDiv = document.createElement('div');
+                    barDiv.className = 'fita-bar';
+                    const segment1 = document.createElement('div');
+                    segment1.className = 'fita-bar-segment1'; 
+                    const segment2 = document.createElement('div');
+                    segment2.className = 'fita-bar-segment2'; 
+                    barDiv.appendChild(segment1);
+                    barDiv.appendChild(segment2);
+                    barDiv.addEventListener('mousemove', (event) => mostrarTooltip(`<strong>${fita.nomFita}</strong><br>${fita.detall}<br><small>Edats: ${fita.edat_50}m (50%) - ${fita.edat_75}m (75%) - ${fita.edat_95}m (95%)</small>`, event));
+                    barDiv.addEventListener('mouseout', amagarTooltip);
+                    barsContainer.appendChild(barDiv);
+                    outerBarsContainer.appendChild(barsContainer); 
+                    fitaRowDiv.appendChild(nameContainer);
+                    fitaRowDiv.appendChild(outerBarsContainer); 
+                    fitesWrapper.appendChild(fitaRowDiv); 
+                });
+                categoriaDiv.appendChild(titolCategoria);
+                categoriaDiv.appendChild(instruccioText); 
+                categoriaDiv.appendChild(fitesWrapper); 
+                categoriesContainer.appendChild(categoriaDiv);
+            });
+
+            dadesDesenvolupament.signesAlerta.forEach(signe => {
+                const signeContainer = document.createElement('div'); 
+                signeContainer.className = 'signe-alerta-item-container no-esperada-alerta'; 
+                signeContainer.id = `signe-container-${generarIdSegur(signe.nomSigne)}`;
+                const checkboxSigne = document.createElement('input');
+                checkboxSigne.type = 'checkbox';
+                checkboxSigne.id = `check-signe-${generarIdSegur(signe.nomSigne)}`;
+                checkboxSigne.dataset.signeNom = signe.nomSigne;
+                const signeText = document.createElement('span');
+                signeText.textContent = signe.nomSigne;
+                signeContainer.appendChild(checkboxSigne);
+                signeContainer.appendChild(signeText);
+                let tooltipTextSigne = `<strong>${signe.nomSigne}</strong><br>${signe.detall}`;
+                tooltipTextSigne += signe.edat_des_de > 0 ? ` <small>(Considerar a partir de ${signe.edat_des_de} mesos).</small>` : ` <small>(Considerar a qualsevol edat).</small>`;
+                signeContainer.addEventListener('mousemove', (event) => mostrarTooltip(tooltipTextSigne, event));
+                signeContainer.addEventListener('mouseout', amagarTooltip);
+                signesAlertaContainer.appendChild(signeContainer);
+            });
+            
+            requestAnimationFrame(actualitzarVisualitzacio);
+        }
+
+        function calcularMesosDesdeData() {
+            const dataNaixementString = dataNaixementInput.value;
+            if (!dataNaixementString) {
+                edatInfantInput.value = "";
+                edatPrecisaInfant = { totalMesosComplets: null, diesTranscorregutsEnMesActual: null, diesEnElMesActualDeEdat: null };
+                actualitzarVisualitzacio();
+                return;
+            }
+
+            const dataNaixementDate = new Date(dataNaixementString);
+            const avui = new Date(); 
+
+            if (dataNaixementDate > avui) {
+                edatInfantInput.value = "";
+                edatPrecisaInfant = { totalMesosComplets: null, diesTranscorregutsEnMesActual: null, diesEnElMesActualDeEdat: null };
+                const inputRect = dataNaixementInput.getBoundingClientRect();
+                mostrarTooltip("La data de naixement no pot ser futura.", {pageX: inputRect.left + window.scrollX, pageY: inputRect.bottom + window.scrollY + 5});
+                setTimeout(amagarTooltip, 3000); 
+                actualitzarVisualitzacio();
+                return;
+            }
+
+            let anys = avui.getFullYear() - dataNaixementDate.getFullYear();
+            let mesos = avui.getMonth() - dataNaixementDate.getMonth();
+            let dies = avui.getDate() - dataNaixementDate.getDate();
+
+            if (dies < 0) {
+                mesos--; 
+                const diesMesAnterior = new Date(avui.getFullYear(), avui.getMonth(), 0).getDate();
+                dies += diesMesAnterior;
+            }
+
+            if (mesos < 0) {
+                anys--; 
+                mesos += 12; 
+            }
+
+            edatPrecisaInfant.totalMesosComplets = (anys * 12) + mesos;
+            edatPrecisaInfant.diesTranscorregutsEnMesActual = dies;
+            
+            const mesDeReferenciaPerCalculDies = new Date(dataNaixementDate.getFullYear(), dataNaixementDate.getMonth() + edatPrecisaInfant.totalMesosComplets, 1);
+            edatPrecisaInfant.diesEnElMesActualDeEdat = new Date(mesDeReferenciaPerCalculDies.getFullYear(), mesDeReferenciaPerCalculDies.getMonth() + 1, 0).getDate();
+
+            if (edatPrecisaInfant.totalMesosComplets >= 0) {
+                edatInfantInput.value = edatPrecisaInfant.totalMesosComplets; 
+            } else {
+                edatInfantInput.value = "";
+                edatPrecisaInfant = { totalMesosComplets: null, diesTranscorregutsEnMesActual: null, diesEnElMesActualDeEdat: null };
+            }
+            actualitzarVisualitzacio(); 
+        }
+
+        function actualitzarVisualitzacio() {
+            const edatMesosComplets = edatPrecisaInfant.totalMesosComplets;
+            const diesTranscorreguts = edatPrecisaInfant.diesTranscorregutsEnMesActual;
+            const diesDelMesPerProporcio = edatPrecisaInfant.diesEnElMesActualDeEdat || 30.4375; 
+
+            const headerHeight = timelineHeader.offsetHeight; 
+            const categoriesActualHeight = categoriesContainer.offsetHeight; 
+            const timelineStartOffset = getCurrentTimelineStartOffset(); 
+
+            verticalGuideLinesContainer.innerHTML = ''; 
+            const totalTimelineWidthPx = MAX_MESOS_GRAFIC * MONTH_COLUMN_WIDTH_PX;
+            
+            verticalGuideLinesContainer.style.top = `${headerHeight}px`;
+            verticalGuideLinesContainer.style.height = `${categoriesActualHeight}px`;
+            verticalGuideLinesContainer.style.width = `${totalTimelineWidthPx}px`;
+            verticalGuideLinesContainer.style.left = `${timelineStartOffset}px`;
+
+            ageLine.style.top = `${headerHeight}px`; 
+            ageLine.style.height = `${categoriesActualHeight}px`; 
+
+            for (let i = 0; i < MAX_MESOS_GRAFIC; i++) { 
+                const guideLine = document.createElement('div');
+                guideLine.className = 'vertical-guide-line';
+                guideLine.style.left = `${i * MONTH_COLUMN_WIDTH_PX}px`; 
+                guideLine.style.height = '100%'; 
+                verticalGuideLinesContainer.appendChild(guideLine);
+            }
+
+             dadesDesenvolupament.categories.forEach(categoria => {
+                 categoria.fites.forEach(fita => { 
+                     const barDiv = document.querySelector(`#fita-row-${generarIdSegur(fita.nomFita)} .fita-bar`);
+                     if (barDiv) {
+                         const barLeftPx = (fita.edat_50 - 1) * MONTH_COLUMN_WIDTH_PX;
+                         const totalBarWidthMonths = Math.max(0, fita.edat_95 - fita.edat_50);
+                         const barWidthPx = totalBarWidthMonths * MONTH_COLUMN_WIDTH_PX;
+                         barDiv.style.left = `${barLeftPx}px`;
+                         barDiv.style.width = `${barWidthPx}px`;
+                         const segment1 = barDiv.querySelector('.fita-bar-segment1');
+                         const segment2 = barDiv.querySelector('.fita-bar-segment2');
+                         if (segment1 && segment2) {
+                             const segment1WidthMonths = Math.max(0, fita.edat_75 - fita.edat_50);
+                             segment1.style.width = totalBarWidthMonths > 0 ? `${(segment1WidthMonths / totalBarWidthMonths) * 100}%` : '0%';
+                             const segment2WidthMonths = Math.max(0, fita.edat_95 - fita.edat_75);
+                             segment2.style.width = totalBarWidthMonths > 0 ? `${(segment2WidthMonths / totalBarWidthMonths) * 100}%` : '0%';
+                         }
+                     }
+                 });
+             });
+            
+            if (edatMesosComplets !== null && edatMesosComplets >= 0) {
+                let fraccioMesPx = 0;
+                if (diesTranscorreguts !== null && diesDelMesPerProporcio > 0) {
+                    fraccioMesPx = (diesTranscorreguts / diesDelMesPerProporcio) * MONTH_COLUMN_WIDTH_PX;
+                }
+                
+                let displayAgeLinePositionPx = (edatMesosComplets * MONTH_COLUMN_WIDTH_PX) + fraccioMesPx;
+
+                if (edatMesosComplets === 0 && diesTranscorreguts === 0) { 
+                    displayAgeLinePositionPx = 0;
+                }
+                
+                const maxVisualPosition = MAX_MESOS_GRAFIC * MONTH_COLUMN_WIDTH_PX;
+                displayAgeLinePositionPx = Math.min(displayAgeLinePositionPx, maxVisualPosition);
+                displayAgeLinePositionPx = Math.max(0, displayAgeLinePositionPx);
+
+
+                if (displayAgeLinePositionPx < maxVisualPosition || (displayAgeLinePositionPx === maxVisualPosition && edatMesosComplets === MAX_MESOS_GRAFIC)) {
+                    ageLine.style.left = `${timelineStartOffset + displayAgeLinePositionPx}px`;
+                    ageLine.style.display = 'block';
+                } else {
+                     ageLine.style.display = 'none'; 
+                }
+
+            } else {
+                ageLine.style.display = 'none'; 
+            }
+            
+            dadesDesenvolupament.signesAlerta.forEach(signe => {
+                const signeContainer = document.getElementById(`signe-container-${generarIdSegur(signe.nomSigne)}`);
+                if (!signeContainer) return; 
+                signeContainer.classList.remove('alerta-activa', 'no-esperada-alerta'); 
+                const edatInputMesosPerAlertes = parseFloat(edatInfantInput.value);
+                if (!isNaN(edatInputMesosPerAlertes) && edatInputMesosPerAlertes >= signe.edat_des_de) {
+                    signeContainer.classList.add('alerta-activa'); 
+                } else {
+                    signeContainer.classList.add('no-esperada-alerta'); 
+                }
+            });
+        }
+        
+        dataNaixementInput.addEventListener('change', calcularMesosDesdeData);
+
+        edatInfantInput.addEventListener('change', () => {
+            const valorInput = edatInfantInput.value;
+            if (valorInput) {
+                const parsedValue = parseFloat(valorInput);
+                if (!isNaN(parsedValue) && parsedValue >=0 && parsedValue <= MAX_MESOS_GRAFIC) {
+                    const mesosCompletsInput = Math.floor(parsedValue);
+                    edatInfantInput.value = mesosCompletsInput; 
+                    edatPrecisaInfant.totalMesosComplets = mesosCompletsInput;
+                    edatPrecisaInfant.diesTranscorregutsEnMesActual = 0; 
+                    const dnVal = dataNaixementInput.value;
+                    if (dnVal) { 
+                        const dnDate = new Date(dnVal);
+                        const mesDeReferencia = new Date(dnDate.getFullYear(), dnDate.getMonth() + mesosCompletsInput, 1);
+                        edatPrecisaInfant.diesEnElMesActualDeEdat = new Date(mesDeReferencia.getFullYear(), mesDeReferencia.getMonth() + 1, 0).getDate();
+                    } else { 
+                        edatPrecisaInfant.diesEnElMesActualDeEdat = 30.4375; 
+                    }
+                } else { 
+                    edatInfantInput.value = ''; 
+                    edatPrecisaInfant = { totalMesosComplets: null, diesTranscorregutsEnMesActual: null, diesEnElMesActualDeEdat: null };
+                }
+            } else { 
+                edatPrecisaInfant = { totalMesosComplets: null, diesTranscorregutsEnMesActual: null, diesEnElMesActualDeEdat: null };
+            }
+            requestAnimationFrame(actualitzarVisualitzacio); 
+        });
+        
+        window.addEventListener('resize', () => {
+            updateLeftColumnWidth(); // Actualitza la variable CSS
+            const newTimelineStartOffset = getCurrentTimelineStartOffset();
+            verticalGuideLinesContainer.style.left = `${newTimelineStartOffset}px`;
+            // La resta de l'actualització d'amplades es gestiona via CSS amb la variable --left-column-width
+            requestAnimationFrame(actualitzarVisualitzacio); 
+        });
+
+        function generarResumPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            const nomInfant = nomInfantInput.value || "No especificat";
+            let edatTextPDF = "No especificada";
+
+            if (edatPrecisaInfant.totalMesosComplets !== null) {
+                edatTextPDF = `${edatPrecisaInfant.totalMesosComplets} mesos`;
+                if (edatPrecisaInfant.diesTranscorregutsEnMesActual > 0 && dataNaixementInput.value) { 
+                    edatTextPDF += ` i ${edatPrecisaInfant.diesTranscorregutsEnMesActual} dies`;
+                } else if (!dataNaixementInput.value && edatInfantInput.value && edatPrecisaInfant.totalMesosComplets !== null) { 
+                     edatTextPDF = `${edatPrecisaInfant.totalMesosComplets} mesos (edat manual)`;
+                }
+            } else if (edatInfantInput.value) { 
+                 edatTextPDF = `${edatInfantInput.value} mesos (edat manual)`;
+            }
+
+            const dataActual = new Date().toLocaleDateString('ca-ES', { year: 'numeric', month: '2-digit', day: '2-digit' });
+
+            let yPos = 20; 
+            const lineHeight = 7; 
+            const margin = 15; 
+
+            doc.setFontSize(16);
+            doc.text("Informe de seguiment del desenvolupament psicomotor infantil", doc.internal.pageSize.getWidth() / 2, yPos, { align: 'center' });
+            yPos += lineHeight * 2.5; 
+
+            doc.setFontSize(11);
+            doc.text(`Nom/Identificador de l'infant: ${nomInfant}`, margin, yPos);
+            yPos += lineHeight;
+            doc.text(`Edat a la data del registre: ${edatTextPDF}`, margin, yPos);
+            yPos += lineHeight;
+            doc.text(`Data del registre: ${dataActual}`, margin, yPos);
+            yPos += lineHeight * 1.5;
+            doc.line(margin, yPos, doc.internal.pageSize.getWidth() - margin, yPos); 
+            yPos += lineHeight * 2; 
+
+            doc.setFontSize(14);
+            doc.text("Fites Encara NO Assolides (Indicadors de possible retard):", margin, yPos);
+            yPos += lineHeight * 1.8; 
+            doc.setFontSize(10);
+
+            let algunaFitaNoAssolidaMarcada = false;
+            dadesDesenvolupament.categories.forEach(categoria => {
+                const fitesMarcadesCategoria = [];
+                categoria.fites.forEach(fita => {
+                    const checkbox = document.getElementById(`check-${generarIdSegur(fita.nomFita)}`);
+                    if (checkbox && checkbox.checked) {
+                        fitesMarcadesCategoria.push(fita.nomFita);
+                        algunaFitaNoAssolidaMarcada = true;
+                    }
+                });
+
+                if (fitesMarcadesCategoria.length > 0) {
+                    if (yPos > doc.internal.pageSize.getHeight() - margin * 3.5) { 
+                        doc.addPage();
+                        yPos = margin;
+                    }
+                    doc.setFontSize(11);
+                    doc.text(categoria.nom + ":", margin, yPos);
+                    yPos += lineHeight * 1.2; 
+                    doc.setFontSize(10);
+                    fitesMarcadesCategoria.forEach(nomFita => {
+                        if (yPos > doc.internal.pageSize.getHeight() - margin) {
+                            doc.addPage();
+                            yPos = margin;
+                        }
+                        doc.text(`  - ${nomFita}`, margin + 3, yPos);
+                        yPos += lineHeight * 0.9;
+                    });
+                    yPos += lineHeight * 0.8; 
+                }
+            });
+            if (!algunaFitaNoAssolidaMarcada) {
+                 if (yPos > doc.internal.pageSize.getHeight() - margin) { doc.addPage(); yPos = margin; }
+                doc.text("No s'han marcat fites com a 'no assolides'.", margin + 3, yPos);
+                yPos += lineHeight;
+            }
+            
+            yPos += lineHeight; 
+            if (yPos > doc.internal.pageSize.getHeight() - margin * 4) { doc.addPage(); yPos = margin; } 
+            doc.line(margin, yPos, doc.internal.pageSize.getWidth() - margin, yPos);
+            yPos += lineHeight * 2; 
+
+
+            doc.setFontSize(14);
+            doc.text("Signes d'Alerta Observats (Presents):", margin, yPos);
+            yPos += lineHeight * 1.8; 
+            doc.setFontSize(10);
+
+            const signesAlertaMarcats = [];
+            dadesDesenvolupament.signesAlerta.forEach(signe => {
+                const checkbox = document.getElementById(`check-signe-${generarIdSegur(signe.nomSigne)}`);
+                if (checkbox && checkbox.checked) {
+                    signesAlertaMarcats.push(signe.nomSigne);
+                }
+            });
+
+            if (signesAlertaMarcats.length > 0) {
+                signesAlertaMarcats.forEach(nomSigne => {
+                    if (yPos > doc.internal.pageSize.getHeight() - margin) {
+                        doc.addPage();
+                        yPos = margin;
+                    }
+                    doc.text(`  - ${nomSigne}`, margin + 3, yPos);
+                    yPos += lineHeight * 0.9;
+                });
+            } else {
+                if (yPos > doc.internal.pageSize.getHeight() - margin) { doc.addPage(); yPos = margin; }
+                doc.text("No s'han marcat signes d'alerta com a 'presents'.", margin + 3, yPos);
+            }
+            
+            const nomFitxer = `informe_seguiment_${nomInfant.toLowerCase().replace(/[^a-z0-9]/g, '_') || 'infant'}.pdf`;
+            doc.save(nomFitxer);
+        }
+
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initTaula();
+            requestAnimationFrame(() => {
+                actualitzarVisualitzacio(); 
+                requestAnimationFrame(actualitzarVisualitzacio); 
+            });
+            desarPdfBtn.addEventListener('click', generarResumPDF);
+        });
+
+    </script>
+</body>
+</html>
