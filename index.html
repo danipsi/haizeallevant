@@ -52,7 +52,7 @@
 
         .fites-chart-container {
             position: relative; 
-            background-color: white;
+            background-color: white; 
             border-radius: 8px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.05);
             overflow-x: auto; 
@@ -77,9 +77,9 @@
             border-right: 1px solid #e2e8f0; 
             box-sizing: border-box; 
             background-color: white; 
-            position: sticky; /* Assegura que es quedi fix amb la resta de la columna */
+            position: sticky; 
             left: 0;
-            z-index: 990; /* Mateix nivell que la capçalera dels mesos */
+            z-index: 991; 
         }
 
         .timeline-month {
@@ -93,17 +93,31 @@
             box-sizing: border-box; 
         }
         
+        #leftColumnBackground { /* NOU ELEMENT PER AL FONS DE LA COLUMNA ESQUERRA */
+            position: absolute; /* Canviat a absolute per controlar-lo amb JS respecte al pare */
+            top: 0; /* S'ajustarà amb JS */
+            left: 0;
+            width: var(--left-column-width);
+            height: 0; /* S'ajustarà amb JS */
+            background-color: white;
+            z-index: 2; /* Per sobre de barres i línies de guia */
+            border-right: 1px solid #e2e8f0;
+            box-sizing: border-box;
+        }
+
         #categoriesContainer {
             padding-left: 0; 
             min-width: fit-content; 
             padding-top: 10px; 
             position: relative; 
+            z-index: 3; /* Per sobre de #leftColumnBackground */
         }
 
         .category-row {
             margin-bottom: 15px;
             padding-bottom: 10px;
             border-bottom: 1px dashed #cbd5e0; 
+            position: relative; /* Context per als fills posicionats */
         }
         .category-row:last-child {
             border-bottom: none;
@@ -116,18 +130,16 @@
             font-size: 1.1rem;
             line-height: 1.4;
             margin-bottom: 0.25rem; 
-            /* Estils per a columna fixa */
             position: sticky;
             left: 0;
             width: var(--left-column-width);
             min-width: var(--left-column-width);
             padding-left: 10px; 
-            padding-right: 10px; /* Espai intern a la dreta */
-            background-color: white;
-            z-index: 980; 
-            border-right: 1px solid #e2e8f0;
+            padding-right: 10px; 
+            background-color: white; 
+            z-index: 3; /* Consistent amb altres elements de la columna */
             box-sizing: border-box;
-            overflow-wrap: break-word; /* Per trencar paraules llargues */
+            overflow-wrap: break-word; 
         }
 
         .category-instruction-text {
@@ -135,40 +147,43 @@
             color: #4A5568; 
             margin-bottom: 10px; 
             font-style: italic; 
-            /* Estils per a columna fixa */
             position: sticky;
             left: 0;
             width: var(--left-column-width);
             min-width: var(--left-column-width);
             padding-left: 10px;
-            padding-right: 10px; /* Espai intern a la dreta */
-            background-color: white;
-            z-index: 980;
-            border-right: 1px solid #e2e8f0;
+            padding-right: 10px; 
+            background-color: white; 
+            z-index: 3; 
             box-sizing: border-box;
         }
 
-        .no-break-text { /* Aplicat a la instrucció per evitar trencaments interns no desitjats */
+        .no-break-text {
             white-space: nowrap;
         }
 
         .fita-row {
             display: flex;
-            align-items: center;
+            align-items: stretch; 
             margin-bottom: 8px;
             min-height: 30px; 
             transition: background-color 0.2s ease-in-out;
+            position: relative; 
         }
         .fita-seleccionada {
-            background-color: #eef2ff; 
+            /* El fons de selecció ha de ser prou opac o aplicar-se a un element amb z-index alt */
+             background-color: #eef2ff; 
+        }
+        /* Si .fita-seleccionada s'aplica a .fita-row, i .fita-name-container està per sobre, caldria aplicar-ho a .fita-name-container */
+        .fita-name-container.fita-seleccionada-nom { 
+            background-color: #eef2ff; /* Per exemple */
         }
 
+
         .fita-name-container {
-            /* Amplada controlada per la variable CSS */
             width: var(--left-column-width);
-            min-width: var(--left-column-width); /* Assegura que no s'encongeixi */
-            padding-left: 10px; /* Unificat */
-            padding-right: 10px; /* Unificat */
+            min-width: var(--left-column-width); 
+            padding: 5px 10px; 
             font-size: 0.8rem; 
             color: #4a5568; 
             display: flex;
@@ -179,8 +194,9 @@
             position: sticky;
             left: 0;
             background-color: white; 
-            z-index: 980; /* Mateix nivell que títols de categoria */
-            border-right: 1px solid #e2e8f0; 
+            z-index: 3; 
+            height: 100%; 
+            /* border-right: 1px solid #e2e8f0;  Mogut a #leftColumnBackground */
         }
         .fita-name-container input[type="checkbox"] {
             margin-right: 6px; 
@@ -191,13 +207,16 @@
 
         .fita-bars-outer-container { 
             position: relative; 
-            height: 20px;
             flex-grow: 1; 
+            display: flex; 
+            align-items: center; 
+            z-index: 1; /* Per sota de #leftColumnBackground i .fita-name-container */
         }
 
         .fita-bars-container { 
             position: relative; 
-            height: 100%; 
+            height: 20px; 
+            width: 100%; 
         }
 
         .fita-bar {
@@ -224,24 +243,25 @@
             position: absolute;
             width: 2px; 
             background-color: #f56565; 
-            z-index: 995; 
+            z-index: 4; 
             display: none; 
         }
         
-        .vertical-guide-line {
+        #verticalGuideLinesContainer { 
+            position: absolute;
+            top: 0; 
+            left: 0; 
+            pointer-events: none; 
+            z-index: 0; 
+        }
+        .vertical-guide-line { 
             position: absolute;
             top: 0; 
             bottom: 0; 
             width: 1px;
             background-color: #e2e8f0; 
-            z-index: 1; 
         }
 
-        #verticalGuideLinesContainer {
-            position: absolute;
-            pointer-events: none; 
-            z-index: 0; 
-        }
 
         .signe-alerta-item-container { 
             display: flex;
@@ -262,22 +282,22 @@
 
         @media (max-width: 768px) {
             :root {
-                 --left-column-width: 150px; /* Amplada per a mòbils */
+                 --left-column-width: 150px; 
             }
             .grid.md\:grid-cols-3 > div { margin-bottom: 0.5rem; } 
-            /* .timeline-header-space i .fita-name-container ja usen la variable --left-column-width */
-            /* Els paddings i font-size de .fita-name-container es poden ajustar aquí si cal més control que només l'amplada */
+            #leftColumnBackground { /* Ajust per mòbil si cal */
+                 width: var(--left-column-width);
+            }
             .fita-name-container {
                 font-size: 0.75rem; 
-                padding-left: 10px; /* Mantingut a 10px per consistència */
-                padding-right: 10px;
+                padding-left: 8px; 
+                padding-right: 8px;
             }
              .fita-name-container input[type="checkbox"] { margin-right: 4px; }
             
             .category-row-title, .category-instruction-text {
-                 padding-left: 10px; 
-                 padding-right: 10px;
-                 /* L'amplada ja es gestiona amb --left-column-width que canvia en mòbil */
+                 padding-left: 8px; 
+                 padding-right: 8px;
             }
         }
     </style>
@@ -329,8 +349,8 @@
             <div class="timeline-header" id="timelineHeader">
                 <div class="timeline-header-space"></div> 
             </div>
-            <div id="categoriesContainer"></div>
-            <div id="verticalGuideLinesContainer"></div>
+            <div id="leftColumnBackground"></div> <div id="verticalGuideLinesContainer"></div>
+            <div id="categoriesContainer"></div> 
             <div class="age-line" id="ageLine"></div>
         </div>
         
@@ -364,12 +384,10 @@
         document.documentElement.style.setProperty('--max-mesos', MAX_MESOS_GRAFIC);
         document.documentElement.style.setProperty('--month-col-width', `${MONTH_COLUMN_WIDTH_PX}px`);
         
-        // Funció per actualitzar la variable CSS de l'amplada de la columna esquerra
         function updateLeftColumnWidth() {
             const currentWidth = window.innerWidth <= 768 ? FITA_NAME_SPACE_PX_MOBILE : FITA_NAME_SPACE_PX_DESKTOP;
             document.documentElement.style.setProperty('--left-column-width', `${currentWidth}px`);
         }
-        // Crida inicial per establir l'amplada correcta
         updateLeftColumnWidth();
 
         let edatPrecisaInfant = {
@@ -486,6 +504,7 @@
         const timelineHeader = document.getElementById('timelineHeader');
         const fitesChartContainer = document.getElementById('fitesChartContainer'); 
         const verticalGuideLinesContainer = document.getElementById('verticalGuideLinesContainer');
+        const leftColumnBackground = document.getElementById('leftColumnBackground'); // NOU
         const desarPdfBtn = document.getElementById('desarPdfBtn');
         
         edatInfantInput.max = MAX_MESOS_GRAFIC;
@@ -522,7 +541,7 @@
             return text.toLowerCase().replace(/[^\wÀ-ÿ-]+/g, '-');
         }
 
-        function getCurrentTimelineStartOffset() { // Aquesta funció ara retorna l'amplada de la columna esquerra
+        function getCurrentTimelineStartOffset() { 
             return window.innerWidth <= 768 ? FITA_NAME_SPACE_PX_MOBILE : FITA_NAME_SPACE_PX_DESKTOP;
         }
 
@@ -568,12 +587,16 @@
                     checkbox.dataset.fitaCategoria = categoria.nom; 
                     
                     checkbox.addEventListener('change', function() {
+                        const fitaNameEl = this.closest('.fita-row').querySelector('.fita-name-container');
                         if (this.checked) {
-                            fitaRowDiv.classList.add('fita-seleccionada');
+                            fitaRowDiv.classList.add('fita-seleccionada'); // Per al fons general de la fila si es vol
+                            if(fitaNameEl) fitaNameEl.classList.add('fita-seleccionada-nom');
                         } else {
                             fitaRowDiv.classList.remove('fita-seleccionada');
+                            if(fitaNameEl) fitaNameEl.classList.remove('fita-seleccionada-nom');
                         }
                     });
+
 
                     const nameSpan = document.createElement('span');
                     nameSpan.textContent = fita.nomFita;
@@ -585,7 +608,6 @@
                     outerBarsContainer.className = 'fita-bars-outer-container';
                     const barsContainer = document.createElement('div');
                     barsContainer.className = 'fita-bars-container';
-                    barsContainer.style.width = `${MAX_MESOS_GRAFIC * MONTH_COLUMN_WIDTH_PX}px`; 
                     const barDiv = document.createElement('div');
                     barDiv.className = 'fita-bar';
                     const segment1 = document.createElement('div');
@@ -688,19 +710,25 @@
             const diesDelMesPerProporcio = edatPrecisaInfant.diesEnElMesActualDeEdat || 30.4375; 
 
             const headerHeight = timelineHeader.offsetHeight; 
-            const categoriesActualHeight = categoriesContainer.offsetHeight; 
+            const categoriesScrollHeight = categoriesContainer.scrollHeight; // Alçada total del contingut scrollable
             const timelineStartOffset = getCurrentTimelineStartOffset(); 
 
+            // Ajustar el fons de la columna esquerra
+            if (leftColumnBackground) {
+                leftColumnBackground.style.top = `${headerHeight}px`;
+                leftColumnBackground.style.height = `${categoriesScrollHeight}px`;
+            }
+            
             verticalGuideLinesContainer.innerHTML = ''; 
             const totalTimelineWidthPx = MAX_MESOS_GRAFIC * MONTH_COLUMN_WIDTH_PX;
             
-            verticalGuideLinesContainer.style.top = `${headerHeight}px`;
-            verticalGuideLinesContainer.style.height = `${categoriesActualHeight}px`;
+            verticalGuideLinesContainer.style.top = `${headerHeight}px`; 
+            verticalGuideLinesContainer.style.height = `${categoriesScrollHeight}px`; // Ajustar alçada
             verticalGuideLinesContainer.style.width = `${totalTimelineWidthPx}px`;
-            verticalGuideLinesContainer.style.left = `${timelineStartOffset}px`;
+            verticalGuideLinesContainer.style.left = `${timelineStartOffset}px`; 
 
             ageLine.style.top = `${headerHeight}px`; 
-            ageLine.style.height = `${categoriesActualHeight}px`; 
+            ageLine.style.height = `${categoriesScrollHeight}px`; // Ajustar alçada
 
             for (let i = 0; i < MAX_MESOS_GRAFIC; i++) { 
                 const guideLine = document.createElement('div');
@@ -709,44 +737,46 @@
                 guideLine.style.height = '100%'; 
                 verticalGuideLinesContainer.appendChild(guideLine);
             }
+            
+            dadesDesenvolupament.categories.forEach(categoria => {
+                categoria.fites.forEach(fita => { 
+                    const fitaRowEl = document.getElementById(`fita-row-${generarIdSegur(fita.nomFita)}`);
+                    if (!fitaRowEl) return;
 
-             dadesDesenvolupament.categories.forEach(categoria => {
-                 categoria.fites.forEach(fita => { 
-                     const barDiv = document.querySelector(`#fita-row-${generarIdSegur(fita.nomFita)} .fita-bar`);
-                     if (barDiv) {
-                         const barLeftPx = (fita.edat_50 - 1) * MONTH_COLUMN_WIDTH_PX;
-                         const totalBarWidthMonths = Math.max(0, fita.edat_95 - fita.edat_50);
-                         const barWidthPx = totalBarWidthMonths * MONTH_COLUMN_WIDTH_PX;
-                         barDiv.style.left = `${barLeftPx}px`;
-                         barDiv.style.width = `${barWidthPx}px`;
-                         const segment1 = barDiv.querySelector('.fita-bar-segment1');
-                         const segment2 = barDiv.querySelector('.fita-bar-segment2');
-                         if (segment1 && segment2) {
-                             const segment1WidthMonths = Math.max(0, fita.edat_75 - fita.edat_50);
-                             segment1.style.width = totalBarWidthMonths > 0 ? `${(segment1WidthMonths / totalBarWidthMonths) * 100}%` : '0%';
-                             const segment2WidthMonths = Math.max(0, fita.edat_95 - fita.edat_75);
-                             segment2.style.width = totalBarWidthMonths > 0 ? `${(segment2WidthMonths / totalBarWidthMonths) * 100}%` : '0%';
-                         }
-                     }
-                 });
-             });
+                    const barDiv = fitaRowEl.querySelector('.fita-bar');
+                    const barsContainer = fitaRowEl.querySelector('.fita-bars-container');
+                    
+                    if (barDiv && barsContainer) {
+                        barsContainer.style.width = `${MAX_MESOS_GRAFIC * MONTH_COLUMN_WIDTH_PX}px`;
+                        const barLeftPx = (fita.edat_50 - 1) * MONTH_COLUMN_WIDTH_PX;
+                        const totalBarWidthMonths = Math.max(0, fita.edat_95 - fita.edat_50);
+                        const barWidthPx = totalBarWidthMonths * MONTH_COLUMN_WIDTH_PX;
+                        barDiv.style.left = `${barLeftPx}px`;
+                        barDiv.style.width = `${barWidthPx}px`;
+                        const segment1 = barDiv.querySelector('.fita-bar-segment1');
+                        const segment2 = barDiv.querySelector('.fita-bar-segment2');
+                        if (segment1 && segment2) {
+                            const segment1WidthMonths = Math.max(0, fita.edat_75 - fita.edat_50);
+                            segment1.style.width = totalBarWidthMonths > 0 ? `${(segment1WidthMonths / totalBarWidthMonths) * 100}%` : '0%';
+                            const segment2WidthMonths = Math.max(0, fita.edat_95 - fita.edat_75);
+                            segment2.style.width = totalBarWidthMonths > 0 ? `${(segment2WidthMonths / totalBarWidthMonths) * 100}%` : '0%';
+                        }
+                    }
+                });
+            });
             
             if (edatMesosComplets !== null && edatMesosComplets >= 0) {
                 let fraccioMesPx = 0;
                 if (diesTranscorreguts !== null && diesDelMesPerProporcio > 0) {
                     fraccioMesPx = (diesTranscorreguts / diesDelMesPerProporcio) * MONTH_COLUMN_WIDTH_PX;
                 }
-                
                 let displayAgeLinePositionPx = (edatMesosComplets * MONTH_COLUMN_WIDTH_PX) + fraccioMesPx;
-
                 if (edatMesosComplets === 0 && diesTranscorreguts === 0) { 
                     displayAgeLinePositionPx = 0;
                 }
-                
                 const maxVisualPosition = MAX_MESOS_GRAFIC * MONTH_COLUMN_WIDTH_PX;
                 displayAgeLinePositionPx = Math.min(displayAgeLinePositionPx, maxVisualPosition);
                 displayAgeLinePositionPx = Math.max(0, displayAgeLinePositionPx);
-
 
                 if (displayAgeLinePositionPx < maxVisualPosition || (displayAgeLinePositionPx === maxVisualPosition && edatMesosComplets === MAX_MESOS_GRAFIC)) {
                     ageLine.style.left = `${timelineStartOffset + displayAgeLinePositionPx}px`;
@@ -754,7 +784,6 @@
                 } else {
                      ageLine.style.display = 'none'; 
                 }
-
             } else {
                 ageLine.style.display = 'none'; 
             }
@@ -802,10 +831,7 @@
         });
         
         window.addEventListener('resize', () => {
-            updateLeftColumnWidth(); // Actualitza la variable CSS
-            const newTimelineStartOffset = getCurrentTimelineStartOffset();
-            verticalGuideLinesContainer.style.left = `${newTimelineStartOffset}px`;
-            // La resta de l'actualització d'amplades es gestiona via CSS amb la variable --left-column-width
+            updateLeftColumnWidth(); 
             requestAnimationFrame(actualitzarVisualitzacio); 
         });
 
@@ -930,7 +956,6 @@
         document.addEventListener('DOMContentLoaded', () => {
             initTaula();
             requestAnimationFrame(() => {
-                actualitzarVisualitzacio(); 
                 requestAnimationFrame(actualitzarVisualitzacio); 
             });
             desarPdfBtn.addEventListener('click', generarResumPDF);
