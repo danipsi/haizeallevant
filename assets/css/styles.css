@@ -1,0 +1,506 @@
+/* ==========================================================================
+   Seguiment del desenvolupament psicomotor infantil — Fulls d'estil
+   Sense dependències externes. Font: pila de sistema (sense Google Fonts).
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Variables globals
+   -------------------------------------------------------------------------- */
+:root {
+    --left-column-width: 200px;
+    --month-col-width:    35px;
+
+    --color-primary:      #4f46e5;
+    --color-primary-dark: #4338ca;
+    --color-bg:           #f0f4f8;
+    --color-surface:      #ffffff;
+    --color-border:       #e2e8f0;
+    --color-border-input: #d1d5db;
+    --color-text:         #2d3748;
+    --color-text-muted:   #718096;
+    --color-text-subtle:  #4a5568;
+
+    --radius-sm:  0.375rem;
+    --radius-md:  0.5rem;
+    --radius-lg:  0.75rem;
+
+    --shadow-sm:  0 1px 2px rgba(0,0,0,.05);
+    --shadow-md:  0 4px 12px rgba(0,0,0,.08);
+    --shadow-lg:  0 10px 25px rgba(0,0,0,.1);
+}
+
+/* --------------------------------------------------------------------------
+   Reset i base
+   -------------------------------------------------------------------------- */
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+                 "Segoe UI", "Helvetica Neue", Arial, Noto Sans, sans-serif;
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* --------------------------------------------------------------------------
+   Utilities (equivalent Tailwind — nomes les classes usades al HTML)
+   -------------------------------------------------------------------------- */
+
+/* Spacing */
+.p-2  { padding: .5rem; }
+.p-4  { padding: 1rem; }
+.py-3 { padding-top: .75rem;  padding-bottom: .75rem; }
+.px-6 { padding-left: 1.5rem; padding-right: 1.5rem; }
+.mb-1 { margin-bottom: .25rem; }
+.mb-2 { margin-bottom: .5rem; }
+.mb-3 { margin-bottom: .75rem; }
+.mb-4 { margin-bottom: 1rem; }
+.mb-6 { margin-bottom: 1.5rem; }
+.mb-12{ margin-bottom: 3rem; }
+.ml-4 { margin-left: 1rem; }
+.mt-2 { margin-top: .5rem; }
+.mt-3 { margin-top: .75rem; }
+.mt-8 { margin-top: 2rem; }
+
+/* Layout */
+.container { width: 100%; margin-right: auto; margin-left: auto; }
+.mx-auto   { margin-left: auto; margin-right: auto; }
+.max-w-7xl { max-width: 80rem; }
+.block     { display: block; }
+.w-full    { width: 100%; }
+.hidden    { display: none !important; }
+.text-center { text-align: center; }
+
+/* Tipografia */
+.text-sm      { font-size: .875rem;  line-height: 1.25rem; }
+.text-md      { font-size: 1rem;     line-height: 1.5rem; }
+.text-lg      { font-size: 1.125rem; line-height: 1.75rem; }
+.text-xl      { font-size: 1.25rem;  line-height: 1.75rem; }
+.text-2xl     { font-size: 1.5rem;   line-height: 2rem; }
+.font-medium  { font-weight: 500; }
+.font-semibold{ font-weight: 600; }
+.font-bold    { font-weight: 700; }
+
+.text-gray-600 { color: #718096; }
+.text-gray-700 { color: #4a5568; }
+.text-gray-800 { color: #2d3748; }
+.text-white    { color: #ffffff; }
+
+/* Fons i vores */
+.bg-white       { background-color: #ffffff; }
+.bg-indigo-600  { background-color: var(--color-primary); }
+.border         { border: 1px solid var(--color-border-input); }
+.border-gray-300{ border-color: #d1d5db; }
+.rounded-md     { border-radius: var(--radius-sm); }
+.rounded-lg     { border-radius: var(--radius-md); }
+
+/* Ombres */
+.shadow-sm { box-shadow: var(--shadow-sm); }
+.shadow    { box-shadow: 0 1px 3px rgba(0,0,0,.1), 0 1px 2px rgba(0,0,0,.06); }
+.shadow-md { box-shadow: 0 4px 6px rgba(0,0,0,.07), 0 2px 4px rgba(0,0,0,.06); }
+
+/* Llistes */
+.list-disc   { list-style-type: disc; }
+.list-inside { list-style-position: inside; }
+
+/* Grid */
+.grid          { display: grid; }
+.grid-cols-1   { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+.gap-3         { gap: .75rem; }
+.gap-4         { gap: 1rem; }
+
+/* Transicio */
+.transition    { transition: color .15s ease, background-color .15s ease,
+                             border-color .15s ease, box-shadow .15s ease,
+                             transform .15s ease; }
+
+/* Hover */
+.hover\:bg-indigo-700:hover  { background-color: var(--color-primary-dark); }
+.hover\:shadow-lg:hover      { box-shadow: 0 10px 15px rgba(0,0,0,.1),
+                                           0 4px 6px rgba(0,0,0,.05); }
+
+/* Focus inputs */
+input:focus,
+input:focus-visible {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, .2);
+}
+
+/* Padding de pagina */
+body.p-4  { padding: 1rem; }
+
+@media (min-width: 768px) {
+    body.p-4   { padding: 1.5rem; }
+    .md\:text-3xl    { font-size: 1.875rem; line-height: 2.25rem; }
+    .md\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (min-width: 640px) {
+    .sm\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* --------------------------------------------------------------------------
+   Components de la pagina
+   -------------------------------------------------------------------------- */
+.input-container,
+.info-container,
+.legal-container {
+    background-color: var(--color-surface);
+    padding: 1.5rem;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    margin-bottom: 1.5rem;
+}
+
+.info-container p,
+.legal-container p {
+    margin-bottom: .5rem;
+    line-height: 1.6;
+    color: var(--color-text-subtle);
+}
+
+.info-container strong,
+.legal-container strong {
+    color: var(--color-text);
+}
+
+.legal-container {
+    font-size: .875rem;
+    border-left: 4px solid var(--color-primary);
+}
+
+/* --------------------------------------------------------------------------
+   Grafic de fites (timeline)
+   -------------------------------------------------------------------------- */
+.fites-chart-container {
+    position: relative;
+    background-color: var(--color-surface);
+    border-radius: var(--radius-sm);
+    box-shadow: 0 4px 12px rgba(0,0,0,.05);
+    overflow-x: auto;
+    overflow-y: auto;
+    max-height: 70vh;
+}
+
+.timeline-header {
+    display: flex;
+    position: sticky;
+    top: 0;
+    background-color: var(--color-surface);
+    z-index: 990;
+    border-bottom: 1px solid var(--color-border);
+    min-width: fit-content;
+}
+
+.timeline-header-space {
+    width: var(--left-column-width);
+    min-width: var(--left-column-width);
+    flex-shrink: 0;
+    border-right: 1px solid var(--color-border);
+    box-sizing: border-box;
+    background-color: var(--color-surface);
+    position: sticky;
+    left: 0;
+    z-index: 990;
+}
+
+.timeline-month {
+    width: var(--month-col-width, 35px);
+    min-width: var(--month-col-width, 35px);
+    text-align: center;
+    font-size: .75rem;
+    color: var(--color-text-muted);
+    padding: 8px 0;
+    border-left: 1px solid var(--color-border);
+    box-sizing: border-box;
+}
+
+#categoriesContainer {
+    padding-left: 0;
+    min-width: fit-content;
+    padding-top: 10px;
+    position: relative;
+}
+
+.category-row {
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px dashed #cbd5e0;
+}
+.category-row:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.category-row-title {
+    font-weight: 600;
+    color: var(--color-text);
+    font-size: 1.1rem;
+    line-height: 1.4;
+    margin-bottom: .25rem;
+    position: sticky;
+    left: 0;
+    width: var(--left-column-width);
+    min-width: var(--left-column-width);
+    padding: 0 10px;
+    background-color: var(--color-surface);
+    z-index: 980;
+    border-right: 1px solid var(--color-border);
+    box-sizing: border-box;
+    overflow-wrap: break-word;
+}
+
+.category-instruction-text {
+    font-size: .9rem;
+    color: var(--color-text-subtle);
+    margin-bottom: 10px;
+    font-style: italic;
+    position: sticky;
+    left: 0;
+    width: var(--left-column-width);
+    min-width: var(--left-column-width);
+    padding: 0 10px;
+    background-color: var(--color-surface);
+    z-index: 980;
+    border-right: 1px solid var(--color-border);
+    box-sizing: border-box;
+}
+
+.no-break-text { white-space: nowrap; }
+
+.fita-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+    min-height: 30px;
+    transition: background-color .2s ease;
+}
+
+.fita-seleccionada { background-color: #eef2ff; }
+
+.fita-name-container {
+    width: var(--left-column-width);
+    min-width: var(--left-column-width);
+    padding: 0 10px;
+    font-size: .8rem;
+    color: var(--color-text-subtle);
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    cursor: default;
+    box-sizing: border-box;
+    position: sticky;
+    left: 0;
+    background-color: var(--color-surface);
+    z-index: 980;
+    border-right: 1px solid var(--color-border);
+}
+
+.fita-name-container input[type="checkbox"] {
+    margin-right: 6px;
+    cursor: pointer;
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    /* Elimina el focus default per aplicar el custom */
+    accent-color: var(--color-primary);
+}
+
+.fita-bars-outer-container {
+    position: relative;
+    height: 20px;
+    flex-grow: 1;
+}
+
+.fita-bars-container {
+    position: relative;
+    height: 100%;
+}
+
+.fita-bar {
+    position: absolute;
+    height: 100%;
+    display: flex;
+    border-radius: 4px;
+    overflow: hidden;
+    cursor: default;
+}
+
+.fita-bar-segment1 { background-color: #7DD3FC; height: 100%; }
+.fita-bar-segment2 { background-color: #0EA5E9; height: 100%; }
+
+.fita-bar:hover .fita-bar-segment1 { background-color: #38BDF8; }
+.fita-bar:hover .fita-bar-segment2 { background-color: #0284C7; }
+
+/* Llegenda del grafic */
+.grafic-llegenda {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    font-size: .78rem;
+    color: var(--color-text-muted);
+    padding: .5rem 1rem .25rem;
+    flex-wrap: wrap;
+}
+.grafic-llegenda-item {
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+}
+.grafic-llegenda-swatch {
+    display: inline-block;
+    width: 28px;
+    height: 10px;
+    border-radius: 3px;
+}
+.grafic-llegenda-swatch--p50  { background-color: #7DD3FC; }
+.grafic-llegenda-swatch--p75  { background-color: #0EA5E9; }
+.grafic-llegenda-swatch--edat {
+    width: 3px;
+    height: 14px;
+    border-radius: 2px;
+    background-color: #f56565;
+}
+
+/* Linia d'edat */
+.age-line {
+    position: absolute;
+    width: 2px;
+    background-color: #f56565;
+    z-index: 995;
+    display: none;
+}
+
+/* Guies verticals */
+.vertical-guide-line {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background-color: var(--color-border);
+    z-index: 1;
+}
+
+#verticalGuideLinesContainer {
+    position: absolute;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* --------------------------------------------------------------------------
+   Signes d'alerta
+   -------------------------------------------------------------------------- */
+.signe-alerta-item-container {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    margin-bottom: 8px;
+    border-radius: var(--radius-sm);
+    transition: background-color .3s ease, transform .2s ease;
+    border: 1px solid var(--color-border);
+    cursor: default;
+}
+
+.signe-alerta-item-container:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.signe-alerta-item-container input[type="checkbox"] {
+    margin-right: 10px;
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    flex-shrink: 0;
+    accent-color: #e53e3e;
+}
+
+.alerta-activa {
+    background-color: #fecaca;
+    color: #c53030;
+    border-color: #f56565;
+    font-weight: 600;
+}
+
+.no-esperada-alerta {
+    background-color: #e2e8f0;
+    color: var(--color-text-subtle);
+    border-color: #cbd5e0;
+}
+
+/* --------------------------------------------------------------------------
+   Tooltip
+   -------------------------------------------------------------------------- */
+.tooltip {
+    position: absolute;
+    background-color: #333;
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: .875rem;
+    z-index: 10000;
+    pointer-events: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,.15);
+    max-width: 260px;
+    white-space: normal;
+    line-height: 1.5;
+}
+
+/* --------------------------------------------------------------------------
+   Boton PDF
+   -------------------------------------------------------------------------- */
+#desarPdfBtn {
+    display: inline-block;
+    background-color: var(--color-primary);
+    color: #fff;
+    font-weight: 700;
+    padding: .75rem 1.5rem;
+    border: none;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+    cursor: pointer;
+    transition: background-color .15s ease, box-shadow .15s ease;
+    font-size: 1rem;
+}
+
+#desarPdfBtn:hover:not(:disabled) {
+    background-color: var(--color-primary-dark);
+    box-shadow: 0 10px 15px rgba(0,0,0,.1);
+}
+
+#desarPdfBtn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, .4);
+}
+
+#desarPdfBtn:disabled {
+    opacity: .75;
+    cursor: wait;
+}
+
+#desarPdfBtn.pdf-btn--ok {
+    background-color: #16a34a;
+}
+
+#desarPdfBtn.pdf-btn--error {
+    background-color: #dc2626;
+}
+
+/* --------------------------------------------------------------------------
+   Responsive
+   -------------------------------------------------------------------------- */
+@media (max-width: 768px) {
+    :root {
+        --left-column-width: 150px;
+    }
+
+    .fita-name-container {
+        font-size: .72rem;
+    }
+
+    .fita-name-container input[type="checkbox"] {
+        margin-right: 4px;
+    }
+}
