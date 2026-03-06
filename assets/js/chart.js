@@ -182,6 +182,9 @@ function actualitzarResum() {
     resumPanel.className = `resum-panel resum-panel--${nivell}`;
     resumPanel.innerHTML = html;
 
+    // Sincronitzar vista llista
+    actualitzarVistaLlista();
+
     // Indicadors de progrés
     const totalFites  = dadesDesenvolupament.categories.reduce((acc, cat) => acc + cat.fites.length, 0);
     const totalSignes = dadesDesenvolupament.signesAlerta.length;
@@ -382,7 +385,85 @@ function initTaula() {
         signesAlertaContainer.appendChild(signeContainer);
     });
 
+    // Construir vista llista (mobil)
+    initLlistaVista();
+
     requestAnimationFrame(actualitzarVisualitzacio);
+}
+
+// ---------------------------------------------------------------------------
+// Vista llista (mobil): construccio i sincronitzacio
+// ---------------------------------------------------------------------------
+function initLlistaVista() {
+    const container = document.getElementById('fitesLlistaContainer');
+    if (!container) return;
+    container.innerHTML = '';
+
+    dadesDesenvolupament.categories.forEach(categoria => {
+        const catDiv = document.createElement('div');
+        catDiv.className = 'llista-categoria';
+
+        const catNom = document.createElement('div');
+        catNom.className   = 'llista-categoria-nom';
+        catNom.textContent = categoria.nom;
+        catDiv.appendChild(catNom);
+
+        const fitesSorted = [...categoria.fites].sort((a, b) => a.edat_50 - b.edat_50);
+        fitesSorted.forEach(fita => {
+            const chartCbId = `check-${generarIdSegur(fita.nomFita)}`;
+
+            const item = document.createElement('div');
+            item.className = 'llista-fita-item';
+            item.id        = `llista-item-${generarIdSegur(fita.nomFita)}`;
+
+            const cb = document.createElement('input');
+            cb.type = 'checkbox';
+            cb.setAttribute('aria-label',
+                `Marcar "${fita.nomFita}" com a no assolida. ` +
+                `P50: ${fita.edat_50}m, P75: ${fita.edat_75}m, P95: ${fita.edat_95}m`
+            );
+            cb.addEventListener('change', function () {
+                const chartCb = document.getElementById(chartCbId);
+                if (chartCb) {
+                    chartCb.checked = this.checked;
+                    chartCb.dispatchEvent(new Event('change'));
+                }
+            });
+
+            const textDiv = document.createElement('div');
+            textDiv.className = 'llista-fita-text';
+
+            const nomSpan = document.createElement('span');
+            nomSpan.textContent = fita.nomFita;
+
+            const edatSpan = document.createElement('div');
+            edatSpan.className   = 'llista-fita-edat';
+            edatSpan.textContent = `P50: ${fita.edat_50}m · P75: ${fita.edat_75}m · P95: ${fita.edat_95}m`;
+
+            textDiv.appendChild(nomSpan);
+            textDiv.appendChild(edatSpan);
+            item.appendChild(cb);
+            item.appendChild(textDiv);
+            catDiv.appendChild(item);
+        });
+
+        container.appendChild(catDiv);
+    });
+}
+
+function actualitzarVistaLlista() {
+    dadesDesenvolupament.categories.forEach(categoria => {
+        categoria.fites.forEach(fita => {
+            const chartCb = document.getElementById(`check-${generarIdSegur(fita.nomFita)}`);
+            const item    = document.getElementById(`llista-item-${generarIdSegur(fita.nomFita)}`);
+            if (!item || !chartCb) return;
+
+            const listCb = item.querySelector('input[type="checkbox"]');
+            if (listCb) listCb.checked = chartCb.checked;
+
+            item.classList.toggle('llista-fita-item--marcada', chartCb.checked);
+        });
+    });
 }
 
 // ---------------------------------------------------------------------------

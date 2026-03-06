@@ -121,6 +121,14 @@ function realitzarReset() {
     toggleBtn.textContent = 'Mostrar tots els signes';
     toggleBtn.setAttribute('aria-pressed', 'false');
 
+    // Restablir toggle de vista llista
+    const toggleVistaBtn = document.getElementById('toggleVistaBtn');
+    if (toggleVistaBtn && document.body.classList.contains('vista-llista')) {
+        document.body.classList.remove('vista-llista');
+        toggleVistaBtn.setAttribute('aria-pressed', 'false');
+        toggleVistaBtn.textContent = 'Vista llista';
+    }
+
     requestAnimationFrame(actualitzarVisualitzacio);
 }
 
@@ -140,6 +148,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Doble rAF per garantir que el DOM esta completament pintat
     requestAnimationFrame(() => requestAnimationFrame(actualitzarVisualitzacio));
+
+    // Toggle vista llista / grafic (mobil)
+    const toggleVistaBtn = document.getElementById('toggleVistaBtn');
+    if (toggleVistaBtn) {
+        toggleVistaBtn.addEventListener('click', function () {
+            const enLlista = document.body.classList.toggle('vista-llista');
+            this.setAttribute('aria-pressed', enLlista);
+            this.textContent = enLlista ? 'Vista grafic' : 'Vista llista';
+        });
+    }
 
     // Boton PDF
     document.getElementById('desarPdfBtn').addEventListener('click', generarResumPDF);

@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Eina web per al seguiment del desenvolupament psicomotor infantil. Processament 100% local, sense enviament de dades a cap servidor.">
+    <meta name="theme-color" content="#4f46e5">
     <title>Seguiment del desenvolupament infantil</title>
+    <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="assets/css/styles.css">
 </head>
 <body class="p-4">
@@ -94,6 +96,16 @@
             <p class="resum-hint">Introduiu l'edat de l'infant per veure el resum de la valoracio.</p>
         </div>
 
+        <!-- Toggle vista mobil -->
+        <div class="vista-toggle-container" id="vistaToggleContainer">
+            <button id="toggleVistaBtn" class="toggle-vista-btn" aria-pressed="false">
+                Vista llista
+            </button>
+        </div>
+
+        <!-- Vista llista (mobil) -->
+        <div id="fitesLlistaContainer" aria-label="Llista de fites del desenvolupament"></div>
+
         <!-- Grafic de fites -->
         <div class="grafic-llegenda">
             <span class="grafic-llegenda-item">
@@ -163,6 +175,15 @@
 
     <!-- Tooltip flotant -->
     <div id="tooltip" class="tooltip hidden" role="tooltip" aria-live="polite"></div>
+
+    <!-- Registre del Service Worker (PWA) -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js').catch(() => {});
+            });
+        }
+    </script>
 
     <!-- Scripts (ordre important: llibreria → dades → grafic → pdf → main) -->
     <script src="assets/libs/jspdf.umd.min.js"></script>
