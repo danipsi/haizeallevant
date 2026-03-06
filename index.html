@@ -178,17 +178,18 @@
             </button>
         </div>
 
-        <div class="text-center mt-6">
-            <button id="btn-instalar" hidden
-                    class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium shadow hover:bg-indigo-700 active:scale-95 transition">
-                ⬇ Instal·la l'aplicació
-            </button>
-        </div>
-
     </main><!-- fi #contingut-principal -->
 
     <!-- Tooltip flotant -->
     <div id="tooltip" class="tooltip hidden" role="tooltip" aria-live="polite"></div>
+
+    <!-- Botó d'instal·lació PWA -->
+    <div class="text-center my-6">
+        <button id="btn-instalar" style="display:none"
+                class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium shadow hover:bg-indigo-700 active:scale-95 transition">
+            ⬇ Instal·la l'aplicació
+        </button>
+    </div>
 
     <!-- Registre del Service Worker (PWA) -->
     <script>
@@ -206,24 +207,26 @@
     <script src="assets/js/pdf.js"></script>
     <script src="assets/js/main.js"></script>
     <script>
-      let deferredPrompt;
+      let deferredPrompt = null;
       const btnInstall = document.getElementById('btn-instalar');
 
       window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
         deferredPrompt = e;
-        btnInstall.hidden = false;
+        btnInstall.style.display = 'inline-flex';
       });
 
       btnInstall.addEventListener('click', async () => {
+        if (!deferredPrompt) return;
         deferredPrompt.prompt();
         const { outcome } = await deferredPrompt.userChoice;
-        if (outcome === 'accepted') btnInstall.hidden = true;
         deferredPrompt = null;
+        if (outcome === 'accepted') btnInstall.style.display = 'none';
       });
 
       window.addEventListener('appinstalled', () => {
-        btnInstall.hidden = true;
+        btnInstall.style.display = 'none';
+        deferredPrompt = null;
       });
     </script>
 
