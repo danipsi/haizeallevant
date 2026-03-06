@@ -178,6 +178,13 @@
             </button>
         </div>
 
+        <div class="text-center mt-6">
+            <button id="btn-instalar" hidden
+                    class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium shadow hover:bg-indigo-700 active:scale-95 transition">
+                ⬇ Instal·la l'aplicació
+            </button>
+        </div>
+
     </main><!-- fi #contingut-principal -->
 
     <!-- Tooltip flotant -->
@@ -199,11 +206,25 @@
     <script src="assets/js/pdf.js"></script>
     <script src="assets/js/main.js"></script>
     <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('./sw.js');
-        });
-      }
+      let deferredPrompt;
+      const btnInstall = document.getElementById('btn-instalar');
+
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        btnInstall.hidden = false;
+      });
+
+      btnInstall.addEventListener('click', async () => {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') btnInstall.hidden = true;
+        deferredPrompt = null;
+      });
+
+      window.addEventListener('appinstalled', () => {
+        btnInstall.hidden = true;
+      });
     </script>
 
 </body>
