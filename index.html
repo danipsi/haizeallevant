@@ -69,6 +69,11 @@
             </div>
         </div>
 
+        <!-- Panell de resum dinàmic (s'omple per JS) -->
+        <div id="resumPanel" class="resum-panel resum-panel--buit">
+            <p class="resum-hint">Introduiu l'edat de l'infant per veure el resum de la valoracio.</p>
+        </div>
+
         <!-- Grafic de fites -->
         <div class="grafic-llegenda">
             <span class="grafic-llegenda-item">
@@ -96,9 +101,14 @@
 
         <!-- Signes d'alerta -->
         <div class="mt-8">
-            <h2 class="text-xl font-semibold text-gray-700 mb-3" id="signesAlertaTitle">
-                Signes d'alerta (marqueu els presents)
-            </h2>
+            <div class="signes-cap">
+                <h2 class="text-xl font-semibold text-gray-700" id="signesAlertaTitle">
+                    Signes d'alerta (marqueu els presents)
+                </h2>
+                <button id="toggleSignesBtn" class="toggle-signes-btn" aria-pressed="false">
+                    Mostrar tots els signes
+                </button>
+            </div>
             <div id="signesAlertaContainer"
                  class="bg-white p-4 rounded-md shadow grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
             </div>

@@ -95,6 +95,24 @@ document.addEventListener('DOMContentLoaded', () => {
     // Boton PDF
     document.getElementById('desarPdfBtn').addEventListener('click', generarResumPDF);
 
+    // Toggle: mostrar/amagar signes d'alerta no rellevants per l'edat
+    document.getElementById('toggleSignesBtn').addEventListener('click', function () {
+        const container    = document.getElementById('signesAlertaContainer');
+        const mostrantTots = container.dataset.mostrantTots === 'true';
+        const nouEstat     = !mostrantTots;
+
+        container.dataset.mostrantTots = nouEstat;
+        this.textContent   = nouEstat ? 'Amagar no rellevants' : 'Mostrar tots els signes';
+        this.setAttribute('aria-pressed', nouEstat);
+
+        // Si ara mostrem tots, afegir classe per restaurar interaccio visual
+        document.querySelectorAll('.signe-no-rellevant').forEach(el => {
+            el.classList.toggle('signe-forcat-visible', nouEstat);
+        });
+
+        requestAnimationFrame(actualitzarVisualitzacio);
+    });
+
     // Data de naixement
     document.getElementById('dataNaixement').addEventListener('change', calcularMesosDesdeData);
 

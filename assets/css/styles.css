@@ -504,3 +504,166 @@ body.p-4  { padding: 1rem; }
         margin-right: 4px;
     }
 }
+
+/* ==========================================================================
+   Fase 2 — Millores clíniques
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Estat clínic de les fites (aplicat a .fita-row quan el checkbox és marcat)
+   -------------------------------------------------------------------------- */
+.fita-seleccionada.fita-atencio    { background-color: #fef9c3; }
+.fita-seleccionada.fita-preocupant { background-color: #fed7aa; }
+.fita-seleccionada.fita-critica    { background-color: #fecaca; }
+
+/* La columna fixa (sticky) ha de tenir el mateix color de fons que la fila */
+.fita-name-container.fita-name--atencio {
+    background-color: #fef9c3;
+    border-left: 3px solid #ca8a04;
+}
+.fita-name-container.fita-name--preocupant {
+    background-color: #fed7aa;
+    border-left: 3px solid #ea580c;
+}
+.fita-name-container.fita-name--critica {
+    background-color: #fecaca;
+    border-left: 3px solid #dc2626;
+}
+
+/* --------------------------------------------------------------------------
+   Panell de resum dinàmic
+   -------------------------------------------------------------------------- */
+.resum-panel {
+    padding: 1rem 1.5rem;
+    border-radius: var(--radius-lg);
+    margin-bottom: 1.5rem;
+    border-left: 4px solid #cbd5e0;
+    background-color: var(--color-surface);
+    box-shadow: var(--shadow-md);
+    transition: border-color .4s ease, background-color .4s ease;
+}
+
+.resum-panel--buit {
+    background-color: #f7fafc;
+    border-left-color: #cbd5e0;
+}
+.resum-panel--ok {
+    background-color: #f0fff4;
+    border-left-color: #48bb78;
+}
+.resum-panel--atencio {
+    background-color: #fffaf0;
+    border-left-color: #f6ad55;
+}
+.resum-panel--critica {
+    background-color: #fff5f5;
+    border-left-color: #fc8181;
+}
+
+.resum-hint {
+    color: var(--color-text-muted);
+    font-size: .875rem;
+    margin: 0;
+}
+
+.resum-titol {
+    font-weight: 600;
+    font-size: .9rem;
+    color: var(--color-text-subtle);
+    margin-bottom: .75rem;
+}
+
+.resum-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    margin-bottom: .75rem;
+    align-items: flex-end;
+}
+
+.resum-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 64px;
+}
+
+.resum-num {
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--color-text);
+}
+
+.resum-label {
+    font-size: .72rem;
+    color: var(--color-text-muted);
+    text-align: center;
+    margin-top: .2rem;
+}
+
+.resum-item--critica   .resum-num { color: #e53e3e; }
+.resum-item--preocupant .resum-num { color: #dd6b20; }
+
+.resum-recomanacio {
+    font-size: .85rem;
+    font-weight: 600;
+    padding: .4rem .75rem;
+    border-radius: var(--radius-sm);
+}
+.resum-recomanacio--ok      { color: #276749; background-color: #c6f6d5; }
+.resum-recomanacio--atencio { color: #7b341e; background-color: #fbd38d; }
+.resum-recomanacio--critica { color: #742a2a; background-color: #fed7d7; }
+
+/* --------------------------------------------------------------------------
+   Signes d'alerta: filtratge per rellevància d'edat
+   -------------------------------------------------------------------------- */
+.signe-no-rellevant {
+    opacity: .3;
+    font-size: .8rem;
+    transition: opacity .3s ease;
+    pointer-events: none; /* evita interacció accidental */
+}
+
+/* Quan s'obre el toggle, restaurar interaccions */
+.signe-no-rellevant.signe-forcat-visible {
+    opacity: 1;
+    font-size: inherit;
+    pointer-events: auto;
+}
+
+/* --------------------------------------------------------------------------
+   Capçalera de la secció de signes + botó toggle
+   -------------------------------------------------------------------------- */
+.signes-cap {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: .5rem;
+    margin-bottom: .75rem;
+}
+
+.signes-cap h2 { margin-bottom: 0; }
+
+.toggle-signes-btn {
+    font-size: .8rem;
+    color: var(--color-primary);
+    background: none;
+    border: 1px solid currentColor;
+    border-radius: var(--radius-sm);
+    padding: .3rem .8rem;
+    cursor: pointer;
+    transition: background-color .15s ease, color .15s ease;
+    white-space: nowrap;
+}
+
+.toggle-signes-btn:hover {
+    background-color: var(--color-primary);
+    color: #fff;
+}
+
+.toggle-signes-btn:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
