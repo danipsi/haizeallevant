@@ -787,3 +787,70 @@ textarea {
     outline: 2px solid var(--color-primary);
     outline-offset: 2px;
 }
+
+/* ==========================================================================
+   Fase 4 — Accessibilitat (a11y)
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   4.1 Focus visible explícit per a tots els elements interactius
+   -------------------------------------------------------------------------- */
+input[type="checkbox"]:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 3px;
+    border-radius: 2px;
+}
+
+/* Assegurar que el focus és visible dins dels contenidors sticky */
+.fita-name-container:focus-within {
+    z-index: 990;
+}
+
+/* --------------------------------------------------------------------------
+   4.3 Icona d'estat de fita (indicador no basat únicament en color)
+   -------------------------------------------------------------------------- */
+.fita-estat-icona {
+    display: inline-block;
+    width: 14px;
+    flex-shrink: 0;
+    font-size: .75rem;
+    font-weight: 700;
+    text-align: center;
+    margin-right: 2px;
+    line-height: 1;
+}
+
+.fita-estat-icona--critica    { color: #dc2626; }
+.fita-estat-icona--preocupant { color: #ea580c; }
+.fita-estat-icona--atencio    { color: #ca8a04; }
+
+/* --------------------------------------------------------------------------
+   4.3 Badge d'edat dels signes d'alerta
+   -------------------------------------------------------------------------- */
+.signe-edat-badge {
+    margin-left: auto;
+    font-size: .65rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    background-color: rgba(0, 0, 0, .06);
+    border-radius: 20px;
+    padding: .1rem .45rem;
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+.alerta-activa .signe-edat-badge {
+    background-color: rgba(197, 48, 48, .12);
+    color: #9b2c2c;
+}
+
+/* Ajust del contenidor per alinear el badge a la dreta */
+.signe-alerta-item-container {
+    justify-content: flex-start;
+    gap: .5rem;
+}
+
+.signe-alerta-item-container span:first-of-type {
+    flex: 1;
+    min-width: 0;
+}

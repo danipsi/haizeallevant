@@ -28,10 +28,12 @@ function generarIdSegur(text) {
 }
 
 // ---------------------------------------------------------------------------
-// Tooltip
+// Tooltip (ratolí, teclat i tàctil)
 // ---------------------------------------------------------------------------
 let tooltipElement;
+let touchTooltipTimer;
 
+/** Posiciona i mostra el tooltip a partir d'un event de ratolí/tàctil. */
 function mostrarTooltip(text, event) {
     if (!tooltipElement) return;
     tooltipElement.innerHTML = text;
@@ -39,8 +41,7 @@ function mostrarTooltip(text, event) {
 
     const tw = tooltipElement.offsetWidth;
     const th = tooltipElement.offsetHeight;
-    const ox = 15;
-    const oy = 15;
+    const ox = 15, oy = 15;
 
     let nx = event.pageX + ox;
     let ny = event.pageY + oy;
@@ -54,6 +55,30 @@ function mostrarTooltip(text, event) {
     tooltipElement.style.top  = `${ny}px`;
 }
 
+/**
+ * Posiciona i mostra el tooltip a partir d'un element del DOM (per a focus de teclat).
+ * El tooltip apareix sota l'element.
+ */
+function mostrarTooltipAlElement(text, el) {
+    if (!tooltipElement) return;
+    tooltipElement.innerHTML = text;
+    tooltipElement.classList.remove('hidden');
+
+    const rect = el.getBoundingClientRect();
+    const tw   = tooltipElement.offsetWidth;
+
+    let nx = rect.left + window.scrollX;
+    let ny = rect.bottom + window.scrollY + 8;
+
+    if (nx + tw > window.scrollX + window.innerWidth) {
+        nx = window.scrollX + window.innerWidth - tw - 10;
+    }
+    if (nx < window.scrollX) nx = window.scrollX + 5;
+
+    tooltipElement.style.left = `${nx}px`;
+    tooltipElement.style.top  = `${ny}px`;
+}
+
 function amagarTooltip() {
     if (tooltipElement) tooltipElement.classList.add('hidden');
 }
@@ -61,13 +86,6 @@ function amagarTooltip() {
 // ---------------------------------------------------------------------------
 // Lògica clínica: estat d'una fita per l'edat actual
 // ---------------------------------------------------------------------------
-/**
- * Retorna 'critica' | 'preocupant' | 'atencio' | null
- * - critica:    l'infant ha superat el P95 i encara no l'ha assolida (molt preocupant)
- * - preocupant: entre P75 i P95
- * - atencio:    entre P50 i P75
- * - null:       l'edat es inferior al P50 o no hi ha edat introduida
- */
 function calcularEstatFita(fita, edatMesos) {
     if (edatMesos === null) return null;
     if (edatMesos >= fita.edat_95) return 'critica';
@@ -76,23 +94,28 @@ function calcularEstatFita(fita, edatMesos) {
     return null;
 }
 
-/**
- * Aplica la classe d'estat correcta a una fila de fita.
- * Nomes s'aplica si el checkbox esta marcat (fita NO assolida).
- */
 function actualitzarEstatFitaRow(fitaRow, fita) {
     fitaRow.classList.remove('fita-atencio', 'fita-preocupant', 'fita-critica');
 
-    if (!fitaRow.classList.contains('fita-seleccionada')) return;
+    const estat = fitaRow.classList.contains('fita-seleccionada')
+        ? calcularEstatFita(fita, edatPrecisaInfant.totalMesosComplets)
+        : null;
 
-    const estat = calcularEstatFita(fita, edatPrecisaInfant.totalMesosComplets);
     if (estat) fitaRow.classList.add(`fita-${estat}`);
 
-    // Sincronitza el color de fons de la columna fixa (sticky)
+    // Columna fixa (sticky): sincronitzar color de fons i indicador lateral
     const nameContainer = fitaRow.querySelector('.fita-name-container');
     if (nameContainer) {
         nameContainer.classList.remove('fita-name--atencio', 'fita-name--preocupant', 'fita-name--critica');
         if (estat) nameContainer.classList.add(`fita-name--${estat}`);
+    }
+
+    // Icona d'estat no basada únicament en color (a11y: 4.3)
+    const iconaEl = fitaRow.querySelector('.fita-estat-icona');
+    if (iconaEl) {
+        const icones = { critica: '⚠', preocupant: '!', atencio: '·' };
+        iconaEl.textContent = estat ? (icones[estat] || '') : '';
+        iconaEl.className   = estat ? `fita-estat-icona fita-estat-icona--${estat}` : 'fita-estat-icona';
     }
 }
 
@@ -106,12 +129,11 @@ function actualitzarResum() {
     const edatMesos = edatPrecisaInfant.totalMesosComplets;
 
     if (edatMesos === null) {
-        resumPanel.className   = 'resum-panel resum-panel--buit';
-        resumPanel.innerHTML   = '<p class="resum-hint">Introduiu l\'edat de l\'infant per veure el resum de la valoracio.</p>';
+        resumPanel.className = 'resum-panel resum-panel--buit';
+        resumPanel.innerHTML = '<p class="resum-hint">Introduiu l\'edat de l\'infant per veure el resum de la valoracio.</p>';
         return;
     }
 
-    // Comptatge de fites per estat
     let totalMarcades = 0, critiques = 0, preocupants = 0;
     dadesDesenvolupament.categories.forEach(cat => {
         cat.fites.forEach(fita => {
@@ -119,48 +141,33 @@ function actualitzarResum() {
             if (!cb || !cb.checked) return;
             totalMarcades++;
             const estat = calcularEstatFita(fita, edatMesos);
-            if (estat === 'critica')    critiques++;
+            if (estat === 'critica')     critiques++;
             else if (estat === 'preocupant') preocupants++;
         });
     });
 
-    // Comptatge de signes d'alerta marcats
     let signesMarcats = 0;
     dadesDesenvolupament.signesAlerta.forEach(signe => {
         const cb = document.getElementById(`check-signe-${generarIdSegur(signe.nomSigne)}`);
         if (cb && cb.checked) signesMarcats++;
     });
 
-    // Nivell global de la valoracio
     let nivell = 'ok';
     if (critiques > 0 || signesMarcats > 0) nivell = 'critica';
     else if (preocupants > 0)               nivell = 'atencio';
 
-    // Construeix el HTML del panell
     const icones = { critica: '⚠', atencio: '◉', ok: '✓' };
 
     let html = `<div class="resum-titol">${icones[nivell]} Resum de la valoracio — ${edatMesos} mesos</div>`;
     html += '<div class="resum-grid">';
-    html += `<div class="resum-item">
-                <span class="resum-num">${totalMarcades}</span>
-                <span class="resum-label">fites no assolides</span>
-             </div>`;
+    html += `<div class="resum-item"><span class="resum-num">${totalMarcades}</span><span class="resum-label">fites no assolides</span></div>`;
     if (critiques > 0) {
-        html += `<div class="resum-item resum-item--critica">
-                    <span class="resum-num">${critiques}</span>
-                    <span class="resum-label">superen el P95 ⚠</span>
-                 </div>`;
+        html += `<div class="resum-item resum-item--critica"><span class="resum-num">${critiques}</span><span class="resum-label">superen el P95 ⚠</span></div>`;
     }
     if (preocupants > 0) {
-        html += `<div class="resum-item resum-item--preocupant">
-                    <span class="resum-num">${preocupants}</span>
-                    <span class="resum-label">entre P75 i P95</span>
-                 </div>`;
+        html += `<div class="resum-item resum-item--preocupant"><span class="resum-num">${preocupants}</span><span class="resum-label">entre P75 i P95</span></div>`;
     }
-    html += `<div class="resum-item${signesMarcats > 0 ? ' resum-item--critica' : ''}">
-                <span class="resum-num">${signesMarcats}</span>
-                <span class="resum-label">signes d'alerta</span>
-             </div>`;
+    html += `<div class="resum-item${signesMarcats > 0 ? ' resum-item--critica' : ''}"><span class="resum-num">${signesMarcats}</span><span class="resum-label">signes d'alerta</span></div>`;
     html += '</div>';
 
     const missatges = {
@@ -211,11 +218,14 @@ function initTaula() {
     // Categories i fites
     dadesDesenvolupament.categories.forEach(categoria => {
         const catDiv = document.createElement('div');
-        catDiv.className = 'category-row';
+        catDiv.className            = 'category-row';
+        catDiv.setAttribute('role', 'group');
+        catDiv.setAttribute('aria-labelledby', `cat-titol-${generarIdSegur(categoria.nom)}`);
 
         const titol = document.createElement('h4');
         titol.className   = 'category-row-title';
         titol.textContent = categoria.nom;
+        titol.id          = `cat-titol-${generarIdSegur(categoria.nom)}`;
 
         const instruccio = document.createElement('p');
         instruccio.className = 'category-instruction-text no-break-text';
@@ -225,13 +235,13 @@ function initTaula() {
         categoria.fites.sort((a, b) => a.edat_50 - b.edat_50);
 
         categoria.fites.forEach(fita => {
-            const ttText = `<strong>${fita.nomFita}</strong><br>${fita.detall}<br><small>Edats: ${fita.edat_50}m (50%) - ${fita.edat_75}m (75%) - ${fita.edat_95}m (95%)</small>`;
+            const ttText = `<strong>${fita.nomFita}</strong><br>${fita.detall}<br><small>Edats: ${fita.edat_50}m (50%) · ${fita.edat_75}m (75%) · ${fita.edat_95}m (95%)</small>`;
 
             const fitaRow = document.createElement('div');
             fitaRow.className = 'fita-row';
             fitaRow.id        = `fita-row-${generarIdSegur(fita.nomFita)}`;
 
-            // Columna esquerra: checkbox + nom
+            // --- Columna esquerra: checkbox + icona estat + nom ---
             const nameContainer = document.createElement('div');
             nameContainer.className = 'fita-name-container';
 
@@ -240,22 +250,43 @@ function initTaula() {
             checkbox.id                    = `check-${generarIdSegur(fita.nomFita)}`;
             checkbox.dataset.fitaNom       = fita.nomFita;
             checkbox.dataset.fitaCategoria = categoria.nom;
+            // a11y 4.2: aria-label descriptiu per a lectors de pantalla
+            checkbox.setAttribute('aria-label',
+                `Marcar "${fita.nomFita}" com a no assolida. ` +
+                `P50: ${fita.edat_50}m, P75: ${fita.edat_75}m, P95: ${fita.edat_95}m`);
 
             checkbox.addEventListener('change', function () {
                 fitaRow.classList.toggle('fita-seleccionada', this.checked);
                 actualitzarEstatFitaRow(fitaRow, fita);
                 actualitzarResum();
             });
+            // a11y 4.1: tooltip accessible per teclat
+            checkbox.addEventListener('focus', () => mostrarTooltipAlElement(ttText, checkbox));
+            checkbox.addEventListener('blur',  amagarTooltip);
+
+            // a11y 4.3: icona d'estat (no depèn únicament del color)
+            const iconaEstat = document.createElement('span');
+            iconaEstat.className = 'fita-estat-icona';
+            iconaEstat.setAttribute('aria-hidden', 'true');
 
             const nameSpan = document.createElement('span');
             nameSpan.textContent = fita.nomFita;
 
             nameContainer.appendChild(checkbox);
+            nameContainer.appendChild(iconaEstat);
             nameContainer.appendChild(nameSpan);
+
+            // Ratolí
             nameContainer.addEventListener('mousemove', e => mostrarTooltip(ttText, e));
             nameContainer.addEventListener('mouseout',  amagarTooltip);
+            // a11y 4.1: tàctil
+            nameContainer.addEventListener('touchstart', e => {
+                clearTimeout(touchTooltipTimer);
+                mostrarTooltip(ttText, { pageX: e.touches[0].pageX, pageY: e.touches[0].pageY });
+                touchTooltipTimer = setTimeout(amagarTooltip, 2500);
+            }, { passive: true });
 
-            // Barra de temps
+            // --- Barra de temps ---
             const outerBars = document.createElement('div');
             outerBars.className = 'fita-bars-outer-container';
 
@@ -275,6 +306,12 @@ function initTaula() {
             barDiv.appendChild(seg2);
             barDiv.addEventListener('mousemove', e => mostrarTooltip(ttText, e));
             barDiv.addEventListener('mouseout',  amagarTooltip);
+            // a11y 4.1: tàctil a la barra
+            barDiv.addEventListener('touchstart', e => {
+                clearTimeout(touchTooltipTimer);
+                mostrarTooltip(ttText, { pageX: e.touches[0].pageX, pageY: e.touches[0].pageY });
+                touchTooltipTimer = setTimeout(amagarTooltip, 2500);
+            }, { passive: true });
 
             barsContainer.appendChild(barDiv);
             outerBars.appendChild(barsContainer);
@@ -300,23 +337,47 @@ function initTaula() {
         checkboxSigne.type             = 'checkbox';
         checkboxSigne.id               = `check-signe-${generarIdSegur(signe.nomSigne)}`;
         checkboxSigne.dataset.signeNom = signe.nomSigne;
+        // a11y 4.2: aria-label descriptiu
+        checkboxSigne.setAttribute('aria-label',
+            `Signe present: ${signe.nomSigne}. ` +
+            (signe.edat_des_de > 0
+                ? `A partir de ${signe.edat_des_de} mesos. `
+                : `A qualsevol edat. `) +
+            signe.detall
+        );
 
-        // Quan es marca un signe, actualitzar el resum
         checkboxSigne.addEventListener('change', actualitzarResum);
 
         const signeText = document.createElement('span');
         signeText.textContent = signe.nomSigne;
 
+        // a11y 4.3: badge d'edat visible (indicador no basat únicament en color)
+        const ageBadge = document.createElement('span');
+        ageBadge.className = 'signe-edat-badge';
+        ageBadge.textContent = signe.edat_des_de > 0 ? `≥${signe.edat_des_de}m` : '';
+        ageBadge.setAttribute('aria-hidden', 'true');
+
         signeContainer.appendChild(checkboxSigne);
         signeContainer.appendChild(signeText);
+        signeContainer.appendChild(ageBadge);
 
         const ttSigne = `<strong>${signe.nomSigne}</strong><br>${signe.detall}` +
             (signe.edat_des_de > 0
                 ? ` <small>(Considerar a partir de ${signe.edat_des_de} mesos).</small>`
                 : ` <small>(Considerar a qualsevol edat).</small>`);
 
+        // Ratolí
         signeContainer.addEventListener('mousemove', e => mostrarTooltip(ttSigne, e));
         signeContainer.addEventListener('mouseout',  amagarTooltip);
+        // a11y 4.1: teclat
+        checkboxSigne.addEventListener('focus', () => mostrarTooltipAlElement(ttSigne, checkboxSigne));
+        checkboxSigne.addEventListener('blur',  amagarTooltip);
+        // a11y 4.1: tàctil
+        signeContainer.addEventListener('touchstart', e => {
+            clearTimeout(touchTooltipTimer);
+            mostrarTooltip(ttSigne, { pageX: e.touches[0].pageX, pageY: e.touches[0].pageY });
+            touchTooltipTimer = setTimeout(amagarTooltip, 2500);
+        }, { passive: true });
 
         signesAlertaContainer.appendChild(signeContainer);
     });
@@ -366,11 +427,8 @@ function actualitzarVisualitzacio() {
             if (barDiv) {
                 const barLeftPx           = (fita.edat_50 - 1) * MONTH_COLUMN_WIDTH_PX;
                 const totalBarWidthMonths = Math.max(0, fita.edat_95 - fita.edat_50);
-                const barWidthPx          = totalBarWidthMonths * MONTH_COLUMN_WIDTH_PX;
-
                 barDiv.style.left  = `${barLeftPx}px`;
-                barDiv.style.width = `${barWidthPx}px`;
-
+                barDiv.style.width = `${totalBarWidthMonths * MONTH_COLUMN_WIDTH_PX}px`;
                 const seg1 = barDiv.querySelector('.fita-bar-segment1');
                 const seg2 = barDiv.querySelector('.fita-bar-segment2');
                 if (seg1 && seg2 && totalBarWidthMonths > 0) {
@@ -378,8 +436,6 @@ function actualitzarVisualitzacio() {
                     seg2.style.width = `${(Math.max(0, fita.edat_95 - fita.edat_75) / totalBarWidthMonths) * 100}%`;
                 }
             }
-
-            // Actualitzar l'estat clínic de la fila
             const fitaRow = document.getElementById(`fita-row-${generarIdSegur(fita.nomFita)}`);
             if (fitaRow) actualitzarEstatFitaRow(fitaRow, fita);
         });
@@ -391,13 +447,10 @@ function actualitzarVisualitzacio() {
 
     if (edatMesosComplets !== null && edatMesosComplets >= 0) {
         const fraccioMesPx = (diesTranscorreguts !== null && diesDelMes > 0)
-            ? (diesTranscorreguts / diesDelMes) * MONTH_COLUMN_WIDTH_PX
-            : 0;
-
+            ? (diesTranscorreguts / diesDelMes) * MONTH_COLUMN_WIDTH_PX : 0;
         let posicio = (edatMesosComplets * MONTH_COLUMN_WIDTH_PX) + fraccioMesPx;
         const maxPos = MAX_MESOS_GRAFIC * MONTH_COLUMN_WIDTH_PX;
         posicio = Math.min(Math.max(posicio, 0), maxPos);
-
         if (posicio < maxPos || edatMesosComplets === MAX_MESOS_GRAFIC) {
             ageLine.style.left    = `${timelineStartOffset + posicio}px`;
             ageLine.style.display = 'block';
@@ -408,7 +461,7 @@ function actualitzarVisualitzacio() {
         ageLine.style.display = 'none';
     }
 
-    // Signes d'alerta: colorat + filtratge per rellevancia d'edat
+    // Signes d'alerta: colorat + filtratge per rellevància
     const edatInputMesos = parseFloat(edatInfantInput.value);
     const hiHaEdat       = !isNaN(edatInputMesos);
     const mostrantTots   = signesAlertaContainer?.dataset.mostrantTots === 'true';
@@ -416,16 +469,11 @@ function actualitzarVisualitzacio() {
     dadesDesenvolupament.signesAlerta.forEach(signe => {
         const sc = document.getElementById(`signe-container-${generarIdSegur(signe.nomSigne)}`);
         if (!sc) return;
-
         const esRellevant = hiHaEdat && edatInputMesos >= signe.edat_des_de;
-
         sc.classList.remove('alerta-activa', 'no-esperada-alerta');
         sc.classList.add(esRellevant ? 'alerta-activa' : 'no-esperada-alerta');
-
-        // Atenuar signes no rellevants (amagar si no s'esta mostrant tot)
         sc.classList.toggle('signe-no-rellevant', hiHaEdat && !esRellevant && !mostrantTots);
     });
 
-    // Actualitzar resum
     actualitzarResum();
 }
