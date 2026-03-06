@@ -198,6 +198,13 @@
     <script src="assets/js/chart.js"></script>
     <script src="assets/js/pdf.js"></script>
     <script src="assets/js/main.js"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('./sw.js');
+        });
+      }
+    </script>
 
 </body>
 </html>
