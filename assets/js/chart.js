@@ -411,10 +411,17 @@ function initLlistaVista() {
         const fitesSorted = [...categoria.fites].sort((a, b) => a.edat_50 - b.edat_50);
         fitesSorted.forEach(fita => {
             const chartCbId = `check-${generarIdSegur(fita.nomFita)}`;
+            const ttText = `<strong>${fita.nomFita}</strong><br>${fita.detall}<br><small>Edats: ${fita.edat_50}m (50%) · ${fita.edat_75}m (75%) · ${fita.edat_95}m (95%)</small>`;
 
             const item = document.createElement('div');
             item.className = 'llista-fita-item';
             item.id        = `llista-item-${generarIdSegur(fita.nomFita)}`;
+
+            item.addEventListener('touchstart', e => {
+                clearTimeout(touchTooltipTimer);
+                mostrarTooltip(ttText, { pageX: e.touches[0].pageX, pageY: e.touches[0].pageY });
+                touchTooltipTimer = setTimeout(amagarTooltip, 2500);
+            }, { passive: true });
 
             const cb = document.createElement('input');
             cb.type = 'checkbox';
