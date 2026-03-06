@@ -223,6 +223,35 @@ function generarResumPDF() {
             doc.setTextColor(0, 0, 0);
         }
 
+        // --- Seccio 3: Observacions del professional (si n'hi ha) ---
+        const obsEl        = document.getElementById('observacions');
+        const observacions = obsEl ? normalitzarTextPdf(obsEl.value.trim()) : '';
+
+        if (observacions) {
+            yPos += PDF_LINE_HEIGHT;
+            yPos = comprovarSaltPagina(doc, yPos, nomInfant, edatText, dataActual);
+            doc.setDrawColor(100, 100, 100);
+            doc.line(PDF_MARGIN, yPos, doc.internal.pageSize.getWidth() - PDF_MARGIN, yPos);
+            yPos += PDF_LINE_HEIGHT * 2;
+
+            doc.setFontSize(13);
+            doc.setFont('helvetica', 'bold');
+            doc.text('Observacions del professional:', PDF_MARGIN, yPos);
+            yPos += PDF_LINE_HEIGHT * 1.8;
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(10);
+
+            const lines = doc.splitTextToSize(
+                observacions,
+                doc.internal.pageSize.getWidth() - PDF_MARGIN * 2
+            );
+            lines.forEach(linia => {
+                yPos = comprovarSaltPagina(doc, yPos, nomInfant, edatText, dataActual);
+                doc.text(linia, PDF_MARGIN, yPos);
+                yPos += PDF_LINE_HEIGHT * 0.9;
+            });
+        }
+
         // --- Peus de pagina a totes les pagines ---
         afegirPeusDePagina(doc);
 

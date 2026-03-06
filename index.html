@@ -21,23 +21,29 @@
             </p>
         </header>
 
-        <!-- Instruccions -->
+        <!-- Instruccions (acordio) -->
         <div class="info-container">
-            <h2 class="text-lg font-semibold text-gray-700 mb-2">Instruccions d'us:</h2>
-            <p>Aquesta eina esta dissenyada per ajudar a identificar possibles indicadors que requereixin un seguiment en el desenvolupament psicomotor de l'infant.</p>
-            <p><strong>Com utilitzar-la:</strong></p>
-            <ul class="list-disc list-inside ml-4 text-gray-700">
-                <li>Introduiu el nom de l'infant (opcional). Per respectar la privacitat, podeu utilitzar sigles o un nom fictici.</li>
-                <li>Introduiu la data de naixement de l'infant o la seva edat en mesos.</li>
-                <li>A la taula de fites, marqueu aquelles fites que l'infant <strong>encara NO ha assolit</strong>. Les barres de colors mostren els rangs d'edat esperats (blau clar: 50-75% dels infants l'assoleixen; blau fosc: 75-95%).</li>
-                <li>A la seccio de "Signes d'alerta", marqueu aquells signes que <strong>SI observeu</strong> en l'infant.</li>
-                <li>Finalment, podeu desar un informe en PDF amb la informacio registrada.</li>
-            </ul>
-            <p class="mt-3 text-sm text-gray-600">
-                L'objectiu es facilitar una primera valoracio visual. Si detecteu diverses fites no assolides
-                (especialment si l'edat de l'infant supera el percentil 95% per a aquestes fites) o la presencia
-                de signes d'alerta, es recomana una valoracio mes exhaustiva per part d'un professional.
-            </p>
+            <button class="instruccions-toggle" id="instruccionsToggle"
+                    aria-expanded="true" aria-controls="instruccionsContingut">
+                <span>Instruccions d'us</span>
+                <span class="instruccions-toggle-icon" aria-hidden="true">▼</span>
+            </button>
+            <div class="instruccions-contingut" id="instruccionsContingut">
+                <p>Aquesta eina esta dissenyada per ajudar a identificar possibles indicadors que requereixin un seguiment en el desenvolupament psicomotor de l'infant.</p>
+                <p><strong>Com utilitzar-la:</strong></p>
+                <ul class="list-disc list-inside ml-4 text-gray-700">
+                    <li>Introduiu el nom de l'infant (opcional). Per respectar la privacitat, podeu utilitzar sigles o un nom fictici.</li>
+                    <li>Introduiu la data de naixement de l'infant o la seva edat en mesos.</li>
+                    <li>A la taula de fites, marqueu aquelles fites que l'infant <strong>encara NO ha assolit</strong>. Les barres de colors mostren els rangs d'edat esperats (blau clar: 50-75% dels infants l'assoleixen; blau fosc: 75-95%).</li>
+                    <li>A la seccio de "Signes d'alerta", marqueu aquells signes que <strong>SI observeu</strong> en l'infant.</li>
+                    <li>Finalment, podeu desar un informe en PDF amb la informacio registrada.</li>
+                </ul>
+                <p class="mt-3 text-sm text-gray-600">
+                    L'objectiu es facilitar una primera valoracio visual. Si detecteu diverses fites no assolides
+                    (especialment si l'edat de l'infant supera el percentil 95% per a aquestes fites) o la presencia
+                    de signes d'alerta, es recomana una valoracio mes exhaustiva per part d'un professional.
+                </p>
+            </div>
         </div>
 
         <!-- Dades de l'infant -->
@@ -65,6 +71,19 @@
                     <input type="number" id="edatInfant" name="edatInfant" min="0"
                            placeholder="Ex: 12"
                            class="w-full p-2 border border-gray-300 rounded-md shadow-sm">
+                </div>
+            </div>
+
+            <!-- Observacions lliures -->
+            <div class="mt-3">
+                <label for="observacions" class="block text-sm font-medium text-gray-700 mb-1">
+                    Observacions del professional (opcional, s'inclouen al PDF):
+                </label>
+                <textarea id="observacions" name="observacions" rows="3" maxlength="500"
+                          placeholder="Notes addicionals per a l'informe..."
+                          class="w-full p-2 border border-gray-300 rounded-md shadow-sm"></textarea>
+                <div class="comptador-observacions" id="comptadorObsWrapper">
+                    <span id="comptadorObs">0</span>/500 caracters
                 </div>
             </div>
         </div>
@@ -98,6 +117,7 @@
             <div id="verticalGuideLinesContainer"></div>
             <div class="age-line" id="ageLine"></div>
         </div>
+        <p class="progres-indicador" id="progressFites">Fites marcades: 0</p>
 
         <!-- Signes d'alerta -->
         <div class="mt-8">
@@ -112,6 +132,7 @@
             <div id="signesAlertaContainer"
                  class="bg-white p-4 rounded-md shadow grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
             </div>
+            <p class="progres-indicador" id="progressSignes">Signes marcats: 0</p>
         </div>
 
         <!-- Avis de privacitat -->
@@ -126,8 +147,11 @@
             <p>Es recomana l'us d'identificadors anonims (sigles, codis) per referir-se als infants.</p>
         </div>
 
-        <!-- Boton PDF -->
-        <div class="mt-8 mb-12 text-center">
+        <!-- Botons d'accio -->
+        <div class="mt-8 mb-12 botons-accio">
+            <button id="novaValoracioBtn" class="nova-valoracio-btn">
+                Nova valoracio
+            </button>
             <button id="desarPdfBtn">
                 Desar informe de seguiment en PDF
             </button>

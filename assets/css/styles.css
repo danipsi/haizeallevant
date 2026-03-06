@@ -667,3 +667,123 @@ body.p-4  { padding: 1rem; }
     outline: 2px solid var(--color-primary);
     outline-offset: 2px;
 }
+
+/* ==========================================================================
+   Fase 3 — UX
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Acordió d'instruccions
+   -------------------------------------------------------------------------- */
+.instruccions-toggle {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--color-text-subtle);
+    text-align: left;
+}
+
+.instruccions-toggle:hover { color: var(--color-text); }
+
+.instruccions-toggle:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+    border-radius: 3px;
+}
+
+.instruccions-toggle-icon {
+    font-size: .7rem;
+    color: var(--color-text-muted);
+    transition: transform .25s ease;
+    flex-shrink: 0;
+    margin-left: .5rem;
+}
+
+.instruccions-toggle[aria-expanded="true"] .instruccions-toggle-icon {
+    transform: rotate(180deg);
+}
+
+.instruccions-contingut {
+    margin-top: 1rem;
+    border-top: 1px solid var(--color-border);
+    padding-top: 1rem;
+    overflow: hidden;
+}
+
+/* --------------------------------------------------------------------------
+   Camp d'observacions
+   -------------------------------------------------------------------------- */
+textarea {
+    resize: vertical;
+    font-family: inherit;
+    font-size: .9rem;
+    line-height: 1.5;
+    display: block;
+}
+
+.comptador-observacions {
+    font-size: .72rem;
+    color: var(--color-text-muted);
+    text-align: right;
+    margin-top: .2rem;
+}
+
+.comptador-observacions.comptador--limit {
+    color: #e53e3e;
+    font-weight: 700;
+}
+
+/* --------------------------------------------------------------------------
+   Indicadors de progrés
+   -------------------------------------------------------------------------- */
+.progres-indicador {
+    font-size: .78rem;
+    color: var(--color-text-muted);
+    text-align: right;
+    margin: .3rem 0 0;
+}
+
+/* --------------------------------------------------------------------------
+   Botó "Nova valoració" + contenidor de botons
+   -------------------------------------------------------------------------- */
+.botons-accio {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.nova-valoracio-btn {
+    font-size: .875rem;
+    background: none;
+    border: 1px solid #cbd5e0;
+    border-radius: var(--radius-sm);
+    padding: .65rem 1.2rem;
+    cursor: pointer;
+    color: var(--color-text-subtle);
+    transition: border-color .15s ease, color .15s ease, background-color .15s ease;
+}
+
+.nova-valoracio-btn:hover {
+    border-color: var(--color-text-subtle);
+    color: var(--color-text);
+}
+
+.nova-valoracio-btn--confirmar {
+    border-color: #e53e3e;
+    color: #e53e3e;
+    background-color: #fff5f5;
+}
+
+.nova-valoracio-btn:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}

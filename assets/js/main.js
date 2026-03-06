@@ -78,9 +78,58 @@ function calcularMesosDesdeData() {
 }
 
 // ---------------------------------------------------------------------------
+// Reset complet de la valoracio
+// ---------------------------------------------------------------------------
+function realitzarReset() {
+    document.getElementById('nomInfant').value      = '';
+    document.getElementById('dataNaixement').value  = '';
+    document.getElementById('edatInfant').value     = '';
+    const obsEl = document.getElementById('observacions');
+    if (obsEl) {
+        obsEl.value = '';
+        document.getElementById('comptadorObs').textContent = '0';
+        document.getElementById('comptadorObsWrapper').classList.remove('comptador--limit');
+    }
+
+    edatPrecisaInfant = { totalMesosComplets: null, diesTranscorregutsEnMesActual: null, diesEnElMesActualDeEdat: null };
+
+    // Desmarcar totes les fites i netejar estats visuals
+    dadesDesenvolupament.categories.forEach(cat => {
+        cat.fites.forEach(fita => {
+            const cb = document.getElementById(`check-${generarIdSegur(fita.nomFita)}`);
+            if (!cb) return;
+            cb.checked = false;
+            const row = document.getElementById(`fita-row-${generarIdSegur(fita.nomFita)}`);
+            if (row) {
+                row.classList.remove('fita-seleccionada', 'fita-atencio', 'fita-preocupant', 'fita-critica');
+                const nc = row.querySelector('.fita-name-container');
+                if (nc) nc.classList.remove('fita-name--atencio', 'fita-name--preocupant', 'fita-name--critica');
+            }
+        });
+    });
+
+    // Desmarcar tots els signes
+    dadesDesenvolupament.signesAlerta.forEach(signe => {
+        const cb = document.getElementById(`check-signe-${generarIdSegur(signe.nomSigne)}`);
+        if (cb) cb.checked = false;
+    });
+
+    // Restablir toggle de signes
+    const signesContainer = document.getElementById('signesAlertaContainer');
+    signesContainer.dataset.mostrantTots = 'false';
+    const toggleBtn = document.getElementById('toggleSignesBtn');
+    toggleBtn.textContent = 'Mostrar tots els signes';
+    toggleBtn.setAttribute('aria-pressed', 'false');
+
+    requestAnimationFrame(actualitzarVisualitzacio);
+}
+
+// ---------------------------------------------------------------------------
 // Inicialitzacio i event listeners
 // ---------------------------------------------------------------------------
 let resizeTimer;
+let resetPendent = false;
+let resetTimer;
 
 document.addEventListener('DOMContentLoaded', () => {
     // Limitar edat maxima al grafic
@@ -111,6 +160,55 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         requestAnimationFrame(actualitzarVisualitzacio);
+    });
+
+    // Acordio d'instruccions
+    const instrToggle   = document.getElementById('instruccionsToggle');
+    const instrContingut = document.getElementById('instruccionsContingut');
+    const estatGuardat  = sessionStorage.getItem('instruccionsObert');
+    // Per defecte obert (null = primera visita), tancat si l'usuari el va tancar
+    if (estatGuardat === 'false') {
+        instrToggle.setAttribute('aria-expanded', 'false');
+        instrContingut.hidden = true;
+    }
+    instrToggle.addEventListener('click', function () {
+        const estaObert = this.getAttribute('aria-expanded') === 'true';
+        const nouEstat  = !estaObert;
+        this.setAttribute('aria-expanded', nouEstat);
+        instrContingut.hidden = !nouEstat;
+        sessionStorage.setItem('instruccionsObert', nouEstat);
+    });
+
+    // Comptador d'observacions
+    const obsEl = document.getElementById('observacions');
+    if (obsEl) {
+        obsEl.addEventListener('input', function () {
+            const len     = this.value.length;
+            const counter = document.getElementById('comptadorObs');
+            const wrapper = document.getElementById('comptadorObsWrapper');
+            counter.textContent = len;
+            wrapper.classList.toggle('comptador--limit', len >= 450);
+        });
+    }
+
+    // Boton Nova valoracio (confirmacio en dos clics)
+    document.getElementById('novaValoracioBtn').addEventListener('click', function () {
+        if (!resetPendent) {
+            resetPendent      = true;
+            this.textContent  = 'Segur? (cliqueu de nou per confirmar)';
+            this.classList.add('nova-valoracio-btn--confirmar');
+            resetTimer = setTimeout(() => {
+                resetPendent     = false;
+                this.textContent = 'Nova valoracio';
+                this.classList.remove('nova-valoracio-btn--confirmar');
+            }, 3000);
+        } else {
+            clearTimeout(resetTimer);
+            resetPendent     = false;
+            this.textContent = 'Nova valoracio';
+            this.classList.remove('nova-valoracio-btn--confirmar');
+            realitzarReset();
+        }
     });
 
     // Data de naixement

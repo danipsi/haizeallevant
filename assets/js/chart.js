@@ -174,6 +174,16 @@ function actualitzarResum() {
 
     resumPanel.className = `resum-panel resum-panel--${nivell}`;
     resumPanel.innerHTML = html;
+
+    // Indicadors de progrés
+    const totalFites  = dadesDesenvolupament.categories.reduce((acc, cat) => acc + cat.fites.length, 0);
+    const totalSignes = dadesDesenvolupament.signesAlerta.length;
+
+    const progFites = document.getElementById('progressFites');
+    if (progFites) progFites.textContent = `Fites marcades: ${totalMarcades} de ${totalFites}`;
+
+    const progSignes = document.getElementById('progressSignes');
+    if (progSignes) progSignes.textContent = `Signes marcats: ${signesMarcats} de ${totalSignes}`;
 }
 
 // ---------------------------------------------------------------------------
