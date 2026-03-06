@@ -856,6 +856,46 @@ input[type="checkbox"]:focus-visible {
 }
 
 /* ==========================================================================
+   5.0 BOTO INSTAL·LACIO PWA
+   ========================================================================== */
+
+.pwa-install-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1rem;
+}
+
+.pwa-install-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    padding: .55rem 1.25rem;
+    background-color: var(--color-primary);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: .9rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(79, 70, 229, .35);
+    transition: background .2s, box-shadow .2s, transform .1s;
+}
+
+.pwa-install-btn::before {
+    content: '\2913';
+    font-size: 1rem;
+}
+
+.pwa-install-btn:hover {
+    background-color: var(--color-primary-dark);
+    box-shadow: 0 4px 10px rgba(79, 70, 229, .45);
+}
+
+.pwa-install-btn:active {
+    transform: scale(.97);
+}
+
+/* ==========================================================================
    5. TOGGLE VISTA MOBIL
    ========================================================================== */
 
@@ -1074,6 +1114,14 @@ input[type="checkbox"]:focus-visible {
     .signe-edat-badge {
         background-color: rgba(255, 255, 255, .08);
         color: var(--color-text-muted);
+    }
+
+    .pwa-install-btn {
+        box-shadow: 0 2px 6px rgba(129, 140, 248, .3);
+    }
+
+    .pwa-install-btn:hover {
+        box-shadow: 0 4px 10px rgba(129, 140, 248, .45);
     }
 
     #desarPdfBtn {

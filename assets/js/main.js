@@ -10,6 +10,24 @@ let edatPrecisaInfant = {
 };
 
 // ---------------------------------------------------------------------------
+// Instal·lacio PWA
+// ---------------------------------------------------------------------------
+let deferredInstallPrompt = null;
+
+window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    deferredInstallPrompt = e;
+    const container = document.getElementById('pwaInstallContainer');
+    if (container) container.hidden = false;
+});
+
+window.addEventListener('appinstalled', () => {
+    deferredInstallPrompt = null;
+    const container = document.getElementById('pwaInstallContainer');
+    if (container) container.hidden = true;
+});
+
+// ---------------------------------------------------------------------------
 // Calcul d'edat a partir de la data de naixement
 // ---------------------------------------------------------------------------
 function calcularMesosDesdeData() {
@@ -148,6 +166,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Doble rAF per garantir que el DOM esta completament pintat
     requestAnimationFrame(() => requestAnimationFrame(actualitzarVisualitzacio));
+
+    // Boto instal·lacio PWA
+    document.getElementById('pwaInstallBtn').addEventListener('click', async () => {
+        if (!deferredInstallPrompt) return;
+        deferredInstallPrompt.prompt();
+        const { outcome } = await deferredInstallPrompt.userChoice;
+        if (outcome === 'accepted') {
+            deferredInstallPrompt = null;
+            document.getElementById('pwaInstallContainer').hidden = true;
+        }
+    });
 
     // Toggle vista llista / grafic (mobil)
     const toggleVistaBtn = document.getElementById('toggleVistaBtn');
