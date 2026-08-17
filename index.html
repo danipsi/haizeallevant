@@ -31,13 +31,16 @@
                 <span class="instruccions-toggle-icon" aria-hidden="true">▼</span>
             </button>
             <div class="instruccions-contingut" id="instruccionsContingut">
-                <p>Aquesta eina ajuda a ordenar l’observació professional. No és una prova diagnòstica ni permet descartar per si sola una dificultat del desenvolupament.</p>
+                <p>Aquesta eina ajuda a registrar i interpretar de manera orientativa l’observació professional del desenvolupament. No és una prova diagnòstica ni permet descartar per si sola una dificultat.</p>
                 <ol class="llista-instruccions">
-                    <li>Indiqueu l’edat cronològica mitjançant la data de naixement o introduint els mesos manualment.</li>
-                    <li>Si l’infant va néixer prematur, indiqueu les setmanes de gestació. L’eina aplicarà l’edat corregida per sota dels 18 mesos.</li>
-                    <li>Marqueu la casella només en les fites <strong>no assolides</strong>. Una casella desmarcada no s’interpreta com una fita assolida.</li>
-                    <li>Per a cada signe d’alerta, indiqueu si s’ha observat, no s’ha observat o no s’ha pogut valorar.</li>
-                    <li>Interpreteu el resultat de manera longitudinal i global, juntament amb les preocupacions de la família i del professional.</li>
+                    <li>Introduïu només un <strong>identificador pseudonimitzat</strong>, mai el nom ni altres dades que permetin identificar l’infant.</li>
+                    <li>Indiqueu l’edat cronològica amb la data de naixement o manualment en mesos; utilitzeu només una de les dues opcions.</li>
+                    <li>Si l’infant va néixer abans de les 37 setmanes, indiqueu les setmanes de gestació. Per sota dels 18 mesos, l’eina utilitzarà l’edat corregida.</li>
+                    <li>Exploreu les fites en la vista de gràfic o de llista. Quan indiqueu l’edat, es mostraran les fites rellevants i les dels tres mesos següents; podeu recuperar la taula completa amb <strong>Mostra totes les fites</strong>.</li>
+                    <li>El botó <strong>i</strong> mostra el criteri d’observació i els percentils de cada fita.</li>
+                    <li>Marqueu únicament les fites <strong>no assolides</strong>. Una casella desmarcada no significa que la fita estigui assolida ni explorada.</li>
+                    <li>En els signes d’alerta, indiqueu si cada signe s’ha observat, no s’ha observat o no s’ha pogut valorar.</li>
+                    <li>Reviseu el resum conjuntament amb les preocupacions i l’evolució de l’infant. Si ho necessiteu, podeu generar un PDF local de la valoració.</li>
                 </ol>
                 <p class="avis-clinic"><strong>Important:</strong> l’absència d’una fita després del P95, una regressió, un signe d’alerta o qualsevol preocupació rellevant requereixen valoració professional; no equivalen automàticament a un diagnòstic.</p>
             </div>
@@ -135,6 +138,10 @@
                     <p class="section-subtitle">Les barres indiquen quan el 50%, el 75% i el 95% de la mostra de referència havien assolit cada fita. En dues fites de llenguatge, la franja queda truncada al límit de 60 mesos de la làmina original.</p>
                 </div>
                 <div class="vista-toggle-container" id="vistaToggleContainer">
+                    <button id="toggleFiltreFitesBtn" class="toggle-filtre-fites-btn" type="button"
+                            aria-pressed="false" hidden>
+                        Mostra totes les fites
+                    </button>
                     <button id="toggleVistaBtn" class="toggle-vista-btn" type="button" aria-pressed="false">
                         Mostra la vista de llista
                     </button>
@@ -157,7 +164,7 @@
                 <div id="categoriesContainer"></div>
                 <div class="age-line" id="ageLine" aria-hidden="true"></div>
             </div>
-            <p class="progres-indicador" id="progressFites">Fites no assolides marcades: 0 de 97</p>
+            <p class="progres-indicador" id="progressFites" aria-live="polite">Mostrant 97 de 97 fites · No assolides marcades: 0</p>
         </section>
 
         <section class="mt-8" aria-labelledby="signesAlertaTitle">

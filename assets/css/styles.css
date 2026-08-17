@@ -202,8 +202,8 @@ input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-
 .resum-item--revisio .resum-num { color: var(--color-danger); }
 .resum-recomanacio { margin: 0 0 .4rem; font-size: .875rem; font-weight: 650; }
 
-.vista-toggle-container { display: flex; }
-.toggle-vista-btn, .toggle-signes-btn, .nova-valoracio-btn {
+.vista-toggle-container { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .5rem; }
+.toggle-vista-btn, .toggle-filtre-fites-btn, .toggle-signes-btn, .nova-valoracio-btn {
     padding: .55rem .85rem;
     border: 1px solid var(--color-primary);
     border-radius: var(--radius-sm);
@@ -213,7 +213,7 @@ input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-
     font-size: .82rem;
     font-weight: 650;
 }
-.toggle-vista-btn:hover, .toggle-signes-btn:hover, .toggle-vista-btn[aria-pressed="true"], .toggle-signes-btn[aria-pressed="true"] {
+.toggle-vista-btn:hover, .toggle-filtre-fites-btn:hover, .toggle-signes-btn:hover, .toggle-vista-btn[aria-pressed="true"], .toggle-filtre-fites-btn[aria-pressed="true"], .toggle-signes-btn[aria-pressed="true"] {
     background: var(--color-primary);
     color: #fff;
 }

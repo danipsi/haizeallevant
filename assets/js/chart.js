@@ -49,6 +49,7 @@ updateLeftColumnWidth();
 
 let tooltipElement;
 let touchTooltipTimer;
+let mostrarTotesFites = false;
 
 function mostrarTooltip(text, event) {
     if (!tooltipElement) return;
@@ -115,6 +116,50 @@ function getEstatSigne(signeId) {
     return document.getElementById(`estat-signe-${signeId}`)?.value || '';
 }
 
+function restablirFiltreFites() {
+    mostrarTotesFites = false;
+}
+
+function alternarFiltreFites() {
+    mostrarTotesFites = !mostrarTotesFites;
+}
+
+function actualitzarFiltreFites() {
+    const edatMesos = obtenirEdatAvaluacioMesos();
+    const filtraPerEdat = Number.isFinite(edatMesos) && !mostrarTotesFites;
+    let visibles = 0;
+
+    dadesDesenvolupament.categories.forEach(categoria => {
+        let categoriaVisible = false;
+        categoria.fites.forEach(fita => {
+            const estaMarcada = getEstatFita(fita.id) === 'no_assolida';
+            const visible = !filtraPerEdat || esFitaRellevantPerEdat(fita, edatMesos) || estaMarcada;
+            const fila = document.getElementById(`fita-row-${fita.id}`);
+            const itemLlista = document.getElementById(`llista-item-${fita.id}`);
+            if (fila) fila.hidden = !visible;
+            if (itemLlista) itemLlista.hidden = !visible;
+            if (visible) {
+                visibles += 1;
+                categoriaVisible = true;
+            }
+        });
+
+        const seccioGrafic = document.getElementById(`categoria-seccio-${categoria.id}`);
+        const seccioLlista = document.getElementById(`llista-categoria-${categoria.id}`);
+        if (seccioGrafic) seccioGrafic.hidden = !categoriaVisible;
+        if (seccioLlista) seccioLlista.hidden = !categoriaVisible;
+    });
+
+    const boto = document.getElementById('toggleFiltreFitesBtn');
+    if (boto) {
+        boto.hidden = !Number.isFinite(edatMesos);
+        boto.setAttribute('aria-pressed', String(mostrarTotesFites));
+        boto.textContent = mostrarTotesFites ? 'Mostra les fites rellevants per edat' : 'Mostra totes les fites';
+    }
+
+    return visibles;
+}
+
 function sincronitzarEstatFita(fita, marcat, origen) {
     const principal = document.getElementById(`estat-${fita.id}`);
     const llista = document.getElementById(`llista-estat-${fita.id}`);
@@ -122,7 +167,7 @@ function sincronitzarEstatFita(fita, marcat, origen) {
     if (llista && origen !== llista) llista.checked = marcat;
     actualitzarEstatFitaRow(document.getElementById(`fita-row-${fita.id}`), fita);
     actualitzarItemLlista(document.getElementById(`llista-item-${fita.id}`), fita);
-    actualitzarResum();
+    requestAnimationFrame(actualitzarVisualitzacio);
 }
 
 function actualitzarEstatFitaRow(fitaRow, fita) {
@@ -212,8 +257,9 @@ function actualitzarResum() {
     resumPanel.innerHTML = html;
 
     const totalFites = dadesDesenvolupament.categories.reduce((total, categoria) => total + categoria.fites.length, 0);
+    const fitesVisibles = actualitzarFiltreFites();
     const progressFites = document.getElementById('progressFites');
-    if (progressFites) progressFites.textContent = `Fites no assolides marcades: ${noAssolides} de ${totalFites}`;
+    if (progressFites) progressFites.textContent = `Mostrant ${fitesVisibles} de ${totalFites} fites · No assolides marcades: ${noAssolides}`;
     const progressSignes = document.getElementById('progressSignes');
     if (progressSignes) progressSignes.textContent = `Signes explorats: ${signesExplorats} de ${dadesDesenvolupament.signesAlerta.length}`;
 
@@ -257,6 +303,7 @@ function initTaula() {
     dadesDesenvolupament.categories.forEach(categoria => {
         const seccioCategoria = document.createElement('section');
         seccioCategoria.className = 'category-row';
+        seccioCategoria.id = `categoria-seccio-${categoria.id}`;
         seccioCategoria.setAttribute('aria-labelledby', `categoria-${categoria.id}`);
 
         const titol = document.createElement('h3');
@@ -377,6 +424,7 @@ function initLlistaVista() {
     dadesDesenvolupament.categories.forEach(categoria => {
         const seccio = document.createElement('section');
         seccio.className = 'llista-categoria';
+        seccio.id = `llista-categoria-${categoria.id}`;
         const titol = document.createElement('h3');
         titol.className = 'llista-categoria-nom';
         titol.textContent = categoria.nom;
@@ -432,6 +480,7 @@ function actualitzarVisualitzacio() {
     if (!timelineHeader || !categoriesContainer || !ageLine) return;
 
     const edatMesos = obtenirEdatAvaluacioMesos();
+    actualitzarFiltreFites();
     const headerHeight = timelineHeader.offsetHeight;
     const categoriesHeight = categoriesContainer.offsetHeight;
     const offset = getCurrentTimelineStartOffset();

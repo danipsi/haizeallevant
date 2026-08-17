@@ -8,7 +8,8 @@ const {
     LIMIT_EDAT_CORREGIDA_MESOS,
     calcularEdatCronologica,
     calcularEdatAvaluacio,
-    classificarFitaNoAssolida
+    classificarFitaNoAssolida,
+    esFitaRellevantPerEdat
 } = require('../assets/js/logic.js');
 
 const arrel = path.resolve(__dirname, '..');
@@ -95,6 +96,9 @@ assert.equal(
     classificarFitaNoAssolida({ edat_50: 53, edat_75: 60, edat_95: 60, franjaTruncada: true }, 60),
     'franja_truncada'
 );
+assert.equal(fites.filter(fita => esFitaRellevantPerEdat(fita, 6)).length, 32);
+assert.equal(fites.filter(fita => esFitaRellevantPerEdat(fita, 12)).length, 48);
+assert.equal(fites.filter(fita => esFitaRellevantPerEdat(fita, null)).length, 97);
 
 const indexHtml = fs.readFileSync(path.join(arrel, 'index.html'), 'utf8');
 const pdfJs = fs.readFileSync(path.join(arrel, 'assets/js/pdf.js'), 'utf8');
@@ -108,9 +112,13 @@ assert.match(indexHtml, /Identificador pseudonimitzat/);
 assert.doesNotMatch(indexHtml, /Nom\/Identificador|id="nomInfant"/);
 assert.match(indexHtml, /assets\/js\/logic\.js/);
 assert.match(indexHtml, /0 a 60 mesos/);
-assert.match(indexHtml, /0 de 97/);
-assert.match(indexHtml, /Fites no assolides marcades/);
+assert.match(indexHtml, /Mostrant 97 de 97 fites/);
 assert.doesNotMatch(indexHtml, /Per a cada fita, seleccioneu/);
+assert.match(indexHtml, /identificador pseudonimitzat/);
+assert.match(indexHtml, /vista de gràfic o de llista/);
+assert.match(indexHtml, /casella desmarcada no significa que la fita estigui assolida ni explorada/);
+assert.match(indexHtml, /generar un PDF local/);
+assert.match(indexHtml, /Mostra totes les fites/);
 const chartJs = fs.readFileSync(path.join(arrel, 'assets/js/chart.js'), 'utf8');
 const stylesCss = fs.readFileSync(path.join(arrel, 'assets/css/styles.css'), 'utf8');
 assert.match(chartJs, /checkbox\.type = 'checkbox'/);

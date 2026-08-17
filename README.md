@@ -7,6 +7,7 @@ Eina web local de suport a l’observació professional del desenvolupament infa
 ## Funcions principals
 
 - Marcatge àgil amb caselles de les fites no assolides; les fites desmarcades no s’interpreten com a assolides.
+- Filtratge automàtic per edat amb una finestra de tres mesos i opció de mostrar les 97 fites.
 - Registre diferenciat dels signes observats, no observats i no valorables.
 - Visualització dels percentils P50, P75 i P95 de la mostra Haizea-Llevant.
 - Càlcul d’edat cronològica i edat corregida per prematuritat per sota dels 18 mesos.

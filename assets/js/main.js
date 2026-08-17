@@ -47,6 +47,7 @@ function restablirEstatEdat() {
 function actualitzarEdatAvaluacio(edatCronologicaMesos, dadesCalendari = null, origen = null) {
     if (!Number.isFinite(edatCronologicaMesos)) {
         restablirEstatEdat();
+        restablirFiltreFites();
         document.getElementById('edatAvaluacioInfo').textContent = '';
         requestAnimationFrame(actualitzarVisualitzacio);
         return;
@@ -154,6 +155,7 @@ function realitzarReset() {
     document.getElementById('comptadorObsWrapper').classList.remove('comptador--limit');
     ['errorDataNaixement', 'errorEdatInfant', 'errorSetmanesGestacio'].forEach(id => mostrarErrorCamp(id));
     restablirEstatEdat();
+    restablirFiltreFites();
 
     const signesContainer = document.getElementById('signesAlertaContainer');
     signesContainer.dataset.mostrantTots = 'false';
@@ -182,6 +184,11 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('toggleVistaBtn').addEventListener('click', function () {
         document.body.classList.toggle('vista-llista');
         actualitzarBotoVista();
+    });
+
+    document.getElementById('toggleFiltreFitesBtn').addEventListener('click', function () {
+        alternarFiltreFites();
+        requestAnimationFrame(actualitzarVisualitzacio);
     });
 
     document.getElementById('desarPdfBtn').addEventListener('click', generarResumPDF);

@@ -2,6 +2,7 @@
 
 const LIMIT_EDAT_CORREGIDA_MESOS = 18;
 const DIES_MITJANS_MES = 30.4375;
+const MARGE_FITES_PROPERES_MESOS = 3;
 
 function parseDataLocal(dataIso) {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(dataIso || '')) return null;
@@ -78,14 +79,21 @@ function classificarFitaNoAssolida(fita, edatMesos) {
     return 'abans_p50';
 }
 
+function esFitaRellevantPerEdat(fita, edatMesos, margeMesos = MARGE_FITES_PROPERES_MESOS) {
+    if (!Number.isFinite(edatMesos)) return true;
+    return Boolean(fita) && Number.isFinite(fita.edat_50) && fita.edat_50 <= edatMesos + margeMesos;
+}
+
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
         LIMIT_EDAT_CORREGIDA_MESOS,
         DIES_MITJANS_MES,
+        MARGE_FITES_PROPERES_MESOS,
         parseDataLocal,
         afegirMesosAmbLimit,
         calcularEdatCronologica,
         calcularEdatAvaluacio,
-        classificarFitaNoAssolida
+        classificarFitaNoAssolida,
+        esFitaRellevantPerEdat
     };
 }
