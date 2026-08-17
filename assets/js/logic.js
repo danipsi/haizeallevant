@@ -71,6 +71,7 @@ function calcularEdatAvaluacio(edatCronologicaMesos, esPrematur, setmanesGestaci
 
 function classificarFitaNoAssolida(fita, edatMesos) {
     if (!fita || !Number.isFinite(edatMesos)) return null;
+    if (fita.franjaTruncada && edatMesos >= fita.edat_75) return 'franja_truncada';
     if (edatMesos >= fita.edat_95) return 'despres_p95';
     if (edatMesos >= fita.edat_75) return 'entre_p75_p95';
     if (edatMesos >= fita.edat_50) return 'entre_p50_p75';

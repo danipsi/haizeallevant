@@ -1,7 +1,7 @@
 {
   "name": "Seguiment del desenvolupament infantil",
   "short_name": "Desenvolupament",
-  "description": "Suport local a la vigilància professional del desenvolupament infantil de 0 a 30 mesos.",
+  "description": "Suport local a la vigilància professional del desenvolupament infantil de 0 a 60 mesos.",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#f0f4f8",

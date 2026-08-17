@@ -1,6 +1,6 @@
 # Seguiment del desenvolupament infantil
 
-Eina web local de suport a l’observació professional del desenvolupament infantil entre 0 i 30 mesos. Inclou una selecció de 54 fites Haizea-Llevant i 25 signes d’alerta.
+Eina web local de suport a l’observació professional del desenvolupament infantil entre 0 i 60 mesos. Inclou les 97 fites Haizea-Llevant i 26 signes d’alerta.
 
 > Aquesta eina no és una prova diagnòstica ni substitueix una valoració clínica, psicopedagògica o interdisciplinària global.
 
@@ -26,13 +26,13 @@ Cal evitar noms, cognoms, inicials identificatives, adreces, centres educatius o
 
 ## Fonts i abast
 
-Les dades estan versionades com a `2026.08` a `assets/js/data.js`. La selecció no reprodueix els 97 ítems complets de l’instrument de 0 a 5 anys.
+Les dades estan versionades com a `2026.08.1` a `assets/js/data.js` i reprodueixen les 97 fites de l’instrument de 0 a 5 anys: 26 de socialització, 31 de llenguatge i lògica matemàtica, 19 de manipulació i 21 posturals.
 
 - Fernández Álvarez E, Fernández Matamoros I, Fuentes Biggi J, Rueda Quillet J. *Taula de desenvolupament Haizea-Llevant*. Govern Basc; 1991.
 - Adaptació professional Haizea-Llevant de l’AEPap per a l’estudi LAyDI.
 - *Protocol d’activitats preventives i de promoció de la salut a l’edat pediàtrica*. Catalunya; 2025.
 
-Els ítems `HL80` i `HL81` conserven percentils aproximats obtinguts per lectura de la taula gràfica original, perquè la font tabulada consultada no en publica els tres valors numèrics.
+Els percentils que no consten a l’adaptació tabulada de l’AEPap s’han transcrit de la taula gràfica original. En `HL56` i `HL57`, la franja continua fins al límit de 60 mesos sense mostrar-hi el P95; l’aplicació ho indica com a franja truncada i no ho classifica com un valor posterior al P95.
 
 ## Ús
 

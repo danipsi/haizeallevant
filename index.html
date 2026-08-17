@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Eina local de suport a la vigilància del desenvolupament infantil de 0 a 30 mesos, basada en una selecció de fites Haizea-Llevant.">
+    <meta name="description" content="Eina local de suport a la vigilància del desenvolupament infantil de 0 a 60 mesos, basada en la taula Haizea-Llevant completa.">
     <meta name="theme-color" content="#f0f4f8" media="(prefers-color-scheme: light)">
     <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)">
     <title>Seguiment del desenvolupament infantil</title>
@@ -19,7 +19,7 @@
                 Seguiment del desenvolupament infantil
             </h1>
             <p class="text-md text-gray-600 mt-2">
-                Selecció orientativa de fites Haizea-Llevant de 0 a 30 mesos
+                Taula Haizea-Llevant completa de 0 a 60 mesos
             </p>
         </header>
 
@@ -70,7 +70,7 @@
                     <label for="edatInfant" class="block text-sm font-medium text-gray-700 mb-1">
                         Edat cronològica manual (mesos)
                     </label>
-                    <input type="number" id="edatInfant" name="edatInfant" min="0" max="30" step="0.1"
+                    <input type="number" id="edatInfant" name="edatInfant" min="0" max="60" step="0.1"
                            inputmode="decimal" autocomplete="off" placeholder="Exemple: 12…"
                            aria-describedby="ajudaEdat errorEdatInfant"
                            class="w-full p-2 border border-gray-300 rounded-md shadow-sm">
@@ -132,7 +132,7 @@
             <div class="section-heading-row">
                 <div>
                     <h2 id="fitesTitol" class="section-title">Fites evolutives</h2>
-                    <p class="section-subtitle">Les barres indiquen quan el 50%, el 75% i el 95% de la mostra de referència havien assolit cada fita.</p>
+                    <p class="section-subtitle">Les barres indiquen quan el 50%, el 75% i el 95% de la mostra de referència havien assolit cada fita. En dues fites de llenguatge, la franja queda truncada al límit de 60 mesos de la làmina original.</p>
                 </div>
                 <div class="vista-toggle-container" id="vistaToggleContainer">
                     <button id="toggleVistaBtn" class="toggle-vista-btn" type="button" aria-pressed="false">
@@ -158,7 +158,7 @@
                 <div id="verticalGuideLinesContainer"></div>
                 <div class="age-line" id="ageLine" aria-hidden="true"></div>
             </div>
-            <p class="progres-indicador" id="progressFites">Fites explorades: 0 de 54</p>
+            <p class="progres-indicador" id="progressFites">Fites explorades: 0 de 97</p>
         </section>
 
         <section class="mt-8" aria-labelledby="signesAlertaTitle">
@@ -172,12 +172,12 @@
                 </button>
             </div>
             <div id="signesAlertaContainer" class="bg-white p-4 rounded-md shadow grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3"></div>
-            <p class="progres-indicador" id="progressSignes">Signes explorats: 0 de 25</p>
+            <p class="progres-indicador" id="progressSignes">Signes explorats: 0 de 26</p>
         </section>
 
         <section class="font-container mt-8" aria-labelledby="fontTitol">
             <h2 id="fontTitol" class="section-title">Font i abast</h2>
-            <p><strong>Versió de les dades:</strong> <span id="versioDades">2026.08</span>. Selecció de 54 fites de l’Haizea-Llevant per al tram de 0 a 30 mesos; no és la reproducció completa dels 97 ítems de 0 a 5 anys.</p>
+            <p><strong>Versió de les dades:</strong> <span id="versioDades">2026.08.1</span>. Reproducció funcional de les 97 fites de l’Haizea-Llevant per al tram de 0 a 60 mesos. Els valors tardans s’han transcrit de la làmina gràfica original; dues franges que continuen més enllà dels 60 mesos es mostren truncades i no s’interpreten com a P95.</p>
             <p>Fonts: <a href="https://www.euskariana.euskadi.eus/euskadib/eu/bib/1821322.do" target="_blank" rel="noreferrer">edició original del Govern Basc</a>, <a href="https://www.aepap.org/sites/default/files/noticia/archivos-adjuntos/indicaciones_para_valorar_el_desarrollo_psicomotor_en_el_estudio_laydi.pdf" target="_blank" rel="noreferrer">adaptació professional de l’AEPap</a> i <a href="https://salutpublica.gencat.cat/web/.content/minisite/aspcat/promocio_salut/infancia-adolescencia/02infancia-amb-salut/protocol-preventiu-edat-pediatrica-2025.pdf" target="_blank" rel="noreferrer">protocol pediàtric de Catalunya de 2025</a>.</p>
         </section>
 

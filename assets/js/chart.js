@@ -38,6 +38,13 @@ function formatMesos(valor) {
     return new Intl.NumberFormat('ca-ES', { maximumFractionDigits: 1 }).format(valor);
 }
 
+function formatPercentilsFita(fita) {
+    if (fita.franjaTruncada) {
+        return `P50: ${formatMesos(fita.edat_50)} m · P75 i P95: fora de la franja representada fins als ${MAX_MESOS_GRAFIC} m`;
+    }
+    return `P50: ${formatMesos(fita.edat_50)} m · P75: ${formatMesos(fita.edat_75)} m · P95: ${formatMesos(fita.edat_95)} m`;
+}
+
 updateLeftColumnWidth();
 
 let tooltipElement;
@@ -82,7 +89,7 @@ function crearTextTooltipFita(fita) {
     return `<strong>${escaparHtml(fita.nomFita)}</strong>`
         + `<br>${escaparHtml(fita.detall)}`
         + `<br><strong>Criteri:</strong> ${escaparHtml(fita.criteri)}`
-        + `<br><small>P50: ${formatMesos(fita.edat_50)} m · P75: ${formatMesos(fita.edat_75)} m · P95: ${formatMesos(fita.edat_95)} m</small>`
+        + `<br><small>${escaparHtml(formatPercentilsFita(fita))}</small>`
         + `<br><small>${escaparHtml(fita.id)} · ${escaparHtml(font?.etiqueta || fita.font)}</small>`;
 }
 
@@ -171,6 +178,7 @@ function actualitzarResum() {
     let noAssolides = 0;
     let noValorables = 0;
     let despresP95 = 0;
+    let frangesTruncades = 0;
 
     dadesDesenvolupament.categories.forEach(categoria => {
         categoria.fites.forEach(fita => {
@@ -181,7 +189,9 @@ function actualitzarResum() {
             if (estat === 'no_valorable') noValorables += 1;
             if (estat === 'no_assolida') {
                 noAssolides += 1;
-                if (classificarFitaNoAssolida(fita, edatMesos) === 'despres_p95') despresP95 += 1;
+                const classificacio = classificarFitaNoAssolida(fita, edatMesos);
+                if (classificacio === 'despres_p95') despresP95 += 1;
+                if (classificacio === 'franja_truncada') frangesTruncades += 1;
             }
         });
     });
@@ -220,6 +230,7 @@ function actualitzarResum() {
                 : 'No s’han registrat alertes entre els elements explorats. Aquest resultat parcial no descarta dificultats del desenvolupament.';
         html += `<p class="resum-recomanacio resum-recomanacio--${nivell}">${missatge}</p>`;
         if (despresP95 > 0) html += `<p class="resum-detail">${despresP95} fita o fites no assolides se situen després del P95 de la mostra de referència.</p>`;
+        if (frangesTruncades > 0) html += `<p class="resum-detail">${frangesTruncades} fita o fites arriben al límit de 60 mesos sense que la làmina original hi representi el P95; no s’han classificat com a posteriors al P95.</p>`;
     }
 
     resumPanel.className = `resum-panel resum-panel--${nivell}`;
@@ -404,7 +415,7 @@ function initLlistaVista() {
             nom.textContent = fita.nomFita;
             const edats = document.createElement('div');
             edats.className = 'llista-fita-edat';
-            edats.textContent = `P50: ${formatMesos(fita.edat_50)} m · P75: ${formatMesos(fita.edat_75)} m · P95: ${formatMesos(fita.edat_95)} m`;
+            edats.textContent = formatPercentilsFita(fita);
             text.append(nom, edats);
 
             const label = document.createElement('label');
@@ -463,14 +474,19 @@ function actualitzarVisualitzacio() {
         categoria.fites.forEach(fita => {
             const barra = document.querySelector(`#fita-row-${fita.id} .fita-bar`);
             if (barra) {
-                const ampladaMesos = Math.max(0, fita.edat_95 - fita.edat_50);
+                const finalBarra = fita.franjaTruncada ? MAX_MESOS_GRAFIC : fita.edat_95;
+                const ampladaMesos = Math.max(0, finalBarra - fita.edat_50);
                 barra.style.left = `${(fita.edat_50 - 1) * MONTH_COLUMN_WIDTH_PX}px`;
                 barra.style.width = `${ampladaMesos * MONTH_COLUMN_WIDTH_PX}px`;
                 const segment1 = barra.querySelector('.fita-bar-segment1');
                 const segment2 = barra.querySelector('.fita-bar-segment2');
                 if (ampladaMesos > 0) {
-                    segment1.style.width = `${((fita.edat_75 - fita.edat_50) / ampladaMesos) * 100}%`;
-                    segment2.style.width = `${((fita.edat_95 - fita.edat_75) / ampladaMesos) * 100}%`;
+                    segment1.style.width = fita.franjaTruncada
+                        ? '100%'
+                        : `${((fita.edat_75 - fita.edat_50) / ampladaMesos) * 100}%`;
+                    segment2.style.width = fita.franjaTruncada
+                        ? '0%'
+                        : `${((fita.edat_95 - fita.edat_75) / ampladaMesos) * 100}%`;
                 }
             }
             actualitzarEstatFitaRow(document.getElementById(`fita-row-${fita.id}`), fita);

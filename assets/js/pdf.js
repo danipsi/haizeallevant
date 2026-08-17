@@ -72,7 +72,8 @@ function etiquetaPosicioPercentil(fita, edatMesos) {
         abans_p50: 'abans del P50',
         entre_p50_p75: 'entre P50 i P75',
         entre_p75_p95: 'entre P75 i P95',
-        despres_p95: 'després del P95'
+        despres_p95: 'després del P95',
+        franja_truncada: 'al límit de 60 mesos; P95 no representat a la làmina original'
     })[posicio] || 'edat no disponible';
 }
 
