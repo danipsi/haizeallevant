@@ -124,6 +124,12 @@ function alternarFiltreFites() {
     mostrarTotesFites = !mostrarTotesFites;
 }
 
+function establirVisibilitatFita(element, visible) {
+    if (!element) return;
+    element.hidden = !visible;
+    element.classList.toggle('fita-filtrada', !visible);
+}
+
 function actualitzarFiltreFites() {
     const edatMesos = obtenirEdatAvaluacioMesos();
     const filtraPerEdat = Number.isFinite(edatMesos) && !mostrarTotesFites;
@@ -136,8 +142,8 @@ function actualitzarFiltreFites() {
             const visible = !filtraPerEdat || esFitaRellevantPerEdat(fita, edatMesos) || estaMarcada;
             const fila = document.getElementById(`fita-row-${fita.id}`);
             const itemLlista = document.getElementById(`llista-item-${fita.id}`);
-            if (fila) fila.hidden = !visible;
-            if (itemLlista) itemLlista.hidden = !visible;
+            establirVisibilitatFita(fila, visible);
+            establirVisibilitatFita(itemLlista, visible);
             if (visible) {
                 visibles += 1;
                 categoriaVisible = true;
@@ -146,8 +152,8 @@ function actualitzarFiltreFites() {
 
         const seccioGrafic = document.getElementById(`categoria-seccio-${categoria.id}`);
         const seccioLlista = document.getElementById(`llista-categoria-${categoria.id}`);
-        if (seccioGrafic) seccioGrafic.hidden = !categoriaVisible;
-        if (seccioLlista) seccioLlista.hidden = !categoriaVisible;
+        establirVisibilitatFita(seccioGrafic, categoriaVisible);
+        establirVisibilitatFita(seccioLlista, categoriaVisible);
     });
 
     const boto = document.getElementById('toggleFiltreFitesBtn');

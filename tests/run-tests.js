@@ -125,6 +125,8 @@ assert.match(chartJs, /checkbox\.type = 'checkbox'/);
 assert.doesNotMatch(chartJs, /crearOpcionsEstatFita/);
 assert.doesNotMatch(chartJs, /verticalGuideLinesContainer/);
 assert.match(stylesCss, /#categoriesContainer::before/);
+assert.match(chartJs, /classList\.toggle\('fita-filtrada'/);
+assert.match(stylesCss, /\.fita-filtrada\s*\{\s*display:\s*none\s*!important;/);
 assert.match(pdfJs, /informe_seguiment_desenvolupament_/);
 assert.doesNotMatch(pdfJs, /nomInfant|identificador\.toLowerCase/);
 assert.match(swJs, /assets\/js\/logic\.js/);
