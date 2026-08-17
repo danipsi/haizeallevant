@@ -3,180 +3,198 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Eina web per al seguiment del desenvolupament psicomotor infantil. Processament 100% local, sense enviament de dades a cap servidor.">
-    <meta name="theme-color" content="#4f46e5">
+    <meta name="description" content="Eina local de suport a la vigilància del desenvolupament infantil de 0 a 30 mesos, basada en una selecció de fites Haizea-Llevant.">
+    <meta name="theme-color" content="#f0f4f8" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)">
     <title>Seguiment del desenvolupament infantil</title>
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="assets/css/styles.css">
 </head>
 <body class="p-4">
+    <a class="skip-link" href="#contingut-principal">Ves al contingut principal</a>
 
     <main id="contingut-principal" class="container mx-auto max-w-7xl">
-
-        <!-- Capçalera -->
         <header class="mb-6 text-center">
             <h1 class="text-2xl md:text-3xl font-bold text-gray-800">
-                Eina de seguiment del desenvolupament psicomotor infantil
+                Seguiment del desenvolupament infantil
             </h1>
             <p class="text-md text-gray-600 mt-2">
-                Eina per a la deteccio d'indicadors de seguiment en el desenvolupament.
+                Selecció orientativa de fites Haizea-Llevant de 0 a 30 mesos
             </p>
         </header>
 
-        <!-- Instruccions (acordio) -->
-        <div class="info-container">
-            <button class="instruccions-toggle" id="instruccionsToggle"
+        <section class="info-container" aria-labelledby="instruccionsTitol">
+            <h2 id="instruccionsTitol" class="sr-only">Instruccions d’ús</h2>
+            <button class="instruccions-toggle" id="instruccionsToggle" type="button"
                     aria-expanded="true" aria-controls="instruccionsContingut">
-                <span>Instruccions d'us</span>
+                <span>Com s’utilitza</span>
                 <span class="instruccions-toggle-icon" aria-hidden="true">▼</span>
             </button>
             <div class="instruccions-contingut" id="instruccionsContingut">
-                <p>Aquesta eina esta dissenyada per ajudar a identificar possibles indicadors que requereixin un seguiment en el desenvolupament psicomotor de l'infant.</p>
-                <p><strong>Com utilitzar-la:</strong></p>
-                <ul class="list-disc list-inside ml-4 text-gray-700">
-                    <li>Introduiu el nom de l'infant (opcional). Per respectar la privacitat, podeu utilitzar sigles o un nom fictici.</li>
-                    <li>Introduiu la data de naixement de l'infant o la seva edat en mesos.</li>
-                    <li>A la taula de fites, marqueu aquelles fites que l'infant <strong>encara NO ha assolit</strong>. Les barres de colors mostren els rangs d'edat esperats (blau clar: 50-75% dels infants l'assoleixen; blau fosc: 75-95%).</li>
-                    <li>A la seccio de "Signes d'alerta", marqueu aquells signes que <strong>SI observeu</strong> en l'infant.</li>
-                    <li>Finalment, podeu desar un informe en PDF amb la informacio registrada.</li>
-                </ul>
-                <p class="mt-3 text-sm text-gray-600">
-                    L'objectiu es facilitar una primera valoracio visual. Si detecteu diverses fites no assolides
-                    (especialment si l'edat de l'infant supera el percentil 95% per a aquestes fites) o la presencia
-                    de signes d'alerta, es recomana una valoracio mes exhaustiva per part d'un professional.
-                </p>
+                <p>Aquesta eina ajuda a ordenar l’observació professional. No és una prova diagnòstica ni permet descartar per si sola una dificultat del desenvolupament.</p>
+                <ol class="llista-instruccions">
+                    <li>Indiqueu l’edat cronològica mitjançant la data de naixement o introduint els mesos manualment.</li>
+                    <li>Si l’infant va néixer prematur, indiqueu les setmanes de gestació. L’eina aplicarà l’edat corregida per sota dels 18 mesos.</li>
+                    <li>Per a cada fita, seleccioneu <strong>Assolida</strong>, <strong>No assolida</strong> o <strong>No valorable</strong>. Deixeu <strong>No explorada</strong> quan encara no s’hagi comprovat.</li>
+                    <li>Per a cada signe d’alerta, indiqueu si s’ha observat, no s’ha observat o no s’ha pogut valorar.</li>
+                    <li>Interpreteu el resultat de manera longitudinal i global, juntament amb les preocupacions de la família i del professional.</li>
+                </ol>
+                <p class="avis-clinic"><strong>Important:</strong> l’absència d’una fita després del P95, una regressió, un signe d’alerta o qualsevol preocupació rellevant requereixen valoració professional; no equivalen automàticament a un diagnòstic.</p>
             </div>
-        </div>
+        </section>
 
-        <!-- Dades de l'infant -->
-        <div class="input-container">
+        <section class="input-container" aria-labelledby="dadesValoracioTitol">
+            <h2 id="dadesValoracioTitol" class="section-title">Dades de la valoració</h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                 <div>
-                    <label for="nomInfant" class="block text-sm font-medium text-gray-700 mb-1">
-                        Nom/Identificador de l'infant:
+                    <label for="identificadorInfant" class="block text-sm font-medium text-gray-700 mb-1">
+                        Identificador pseudonimitzat
                     </label>
-                    <input type="text" id="nomInfant" name="nomInfant"
-                           placeholder="Ex: J.P.G. o Nen/a 1"
+                    <input type="text" id="identificadorInfant" name="identificadorInfant"
+                           maxlength="30" autocomplete="off" spellcheck="false"
+                           placeholder="Exemple: ID_001…"
+                           aria-describedby="ajudaIdentificador"
                            class="w-full p-2 border border-gray-300 rounded-md shadow-sm">
+                    <p id="ajudaIdentificador" class="field-help">No introduïu noms, cognoms ni inicials identificatives.</p>
                 </div>
                 <div>
                     <label for="dataNaixement" class="block text-sm font-medium text-gray-700 mb-1">
-                        Data de naixement:
+                        Data de naixement
                     </label>
-                    <input type="date" id="dataNaixement" name="dataNaixement"
+                    <input type="date" id="dataNaixement" name="dataNaixement" autocomplete="off"
+                           aria-describedby="ajudaEdat errorDataNaixement"
                            class="w-full p-2 border border-gray-300 rounded-md shadow-sm">
+                    <p id="errorDataNaixement" class="field-error" role="alert" hidden></p>
                 </div>
                 <div>
                     <label for="edatInfant" class="block text-sm font-medium text-gray-700 mb-1">
-                        Edat (mesos):
+                        Edat cronològica manual (mesos)
                     </label>
-                    <input type="number" id="edatInfant" name="edatInfant" min="0"
-                           placeholder="Ex: 12"
+                    <input type="number" id="edatInfant" name="edatInfant" min="0" max="30" step="0.1"
+                           inputmode="decimal" autocomplete="off" placeholder="Exemple: 12…"
+                           aria-describedby="ajudaEdat errorEdatInfant"
                            class="w-full p-2 border border-gray-300 rounded-md shadow-sm">
+                    <p id="errorEdatInfant" class="field-error" role="alert" hidden></p>
                 </div>
             </div>
+            <p id="ajudaEdat" class="field-help mb-4">Utilitzeu només una de les dues opcions. Si modifiqueu l’edat manualment, la data de naixement s’esborrarà.</p>
 
-            <!-- Observacions lliures -->
+            <fieldset class="prematuritat-fieldset">
+                <legend>Correcció per prematuritat</legend>
+                <label class="checkbox-label" for="infantPrematur">
+                    <input type="checkbox" id="infantPrematur" name="infantPrematur">
+                    L’infant va néixer abans de les 37 setmanes de gestació
+                </label>
+                <div id="setmanesGestacioWrapper" class="setmanes-wrapper" hidden>
+                    <label for="setmanesGestacio" class="block text-sm font-medium text-gray-700 mb-1">
+                        Setmanes de gestació en néixer
+                    </label>
+                    <input type="number" id="setmanesGestacio" name="setmanesGestacio"
+                           min="22" max="36" step="1" inputmode="numeric" autocomplete="off"
+                           placeholder="Exemple: 32…" aria-describedby="errorSetmanesGestacio"
+                           class="w-full p-2 border border-gray-300 rounded-md shadow-sm">
+                    <p id="errorSetmanesGestacio" class="field-error" role="alert" hidden></p>
+                </div>
+                <p id="edatAvaluacioInfo" class="edat-avaluacio-info" aria-live="polite"></p>
+            </fieldset>
+
+            <div class="mt-3">
+                <label for="preocupacionsFamilia" class="block text-sm font-medium text-gray-700 mb-1">
+                    Preocupacions de la família o del professional (opcional)
+                </label>
+                <textarea id="preocupacionsFamilia" name="preocupacionsFamilia" rows="2" maxlength="300"
+                          autocomplete="off" aria-describedby="ajudaTextLliure"
+                          placeholder="Descriviu la preocupació sense dades identificatives…"
+                          class="w-full p-2 border border-gray-300 rounded-md shadow-sm"></textarea>
+            </div>
             <div class="mt-3">
                 <label for="observacions" class="block text-sm font-medium text-gray-700 mb-1">
-                    Observacions del professional (opcional, s'inclouen al PDF):
+                    Observacions professionals (opcional)
                 </label>
                 <textarea id="observacions" name="observacions" rows="3" maxlength="500"
-                          placeholder="Notes addicionals per a l'informe..."
+                          autocomplete="off" aria-describedby="ajudaTextLliure comptadorObsWrapper"
+                          placeholder="Afegiu només la informació necessària i no identificativa…"
                           class="w-full p-2 border border-gray-300 rounded-md shadow-sm"></textarea>
                 <div class="comptador-observacions" id="comptadorObsWrapper">
-                    <span id="comptadorObs">0</span>/500 caracters
+                    <span id="comptadorObs">0</span>/500 caràcters
                 </div>
             </div>
-        </div>
+            <p id="ajudaTextLliure" class="privacy-inline">No inclogueu noms, cognoms, adreces, centres educatius ni altres dades que permetin identificar l’infant o la família.</p>
+        </section>
 
-        <!-- Panell de resum dinàmic (s'omple per JS) -->
-        <div id="resumPanel" class="resum-panel resum-panel--buit"
-             role="status" aria-live="polite" aria-atomic="false">
-            <p class="resum-hint">Introduiu l'edat de l'infant per veure el resum de la valoracio.</p>
-        </div>
+        <section id="resumPanel" class="resum-panel resum-panel--buit"
+                 aria-labelledby="resumTitol" aria-live="polite" aria-atomic="false">
+            <h2 id="resumTitol" class="resum-titol">Resum de la valoració</h2>
+            <p class="resum-hint">Introduïu l’edat i exploreu les fites per obtenir un resum descriptiu.</p>
+        </section>
 
-        <!-- Toggle vista mobil -->
-        <div class="vista-toggle-container" id="vistaToggleContainer">
-            <button id="toggleVistaBtn" class="toggle-vista-btn" aria-pressed="false">
-                Vista llista
-            </button>
-        </div>
-
-        <!-- Vista llista (mobil) -->
-        <div id="fitesLlistaContainer" aria-label="Llista de fites del desenvolupament"></div>
-
-        <!-- Grafic de fites -->
-        <div class="grafic-llegenda">
-            <span class="grafic-llegenda-item">
-                <span class="grafic-llegenda-swatch grafic-llegenda-swatch--p50"></span>
-                P50 &rarr; P75 (50-75% dels infants)
-            </span>
-            <span class="grafic-llegenda-item">
-                <span class="grafic-llegenda-swatch grafic-llegenda-swatch--p75"></span>
-                P75 &rarr; P95 (75-95% dels infants)
-            </span>
-            <span class="grafic-llegenda-item">
-                <span class="grafic-llegenda-swatch grafic-llegenda-swatch--edat"></span>
-                Edat actual de l'infant
-            </span>
-        </div>
-
-        <div class="fites-chart-container" id="fitesChartContainer"
-             role="region" aria-label="Grafic de fites del desenvolupament psicomotor per mesos">
-            <div class="timeline-header" id="timelineHeader">
-                <div class="timeline-header-space"></div>
+        <section aria-labelledby="fitesTitol">
+            <div class="section-heading-row">
+                <div>
+                    <h2 id="fitesTitol" class="section-title">Fites evolutives</h2>
+                    <p class="section-subtitle">Les barres indiquen quan el 50%, el 75% i el 95% de la mostra de referència havien assolit cada fita.</p>
+                </div>
+                <div class="vista-toggle-container" id="vistaToggleContainer">
+                    <button id="toggleVistaBtn" class="toggle-vista-btn" type="button" aria-pressed="false">
+                        Mostra la vista de llista
+                    </button>
+                </div>
             </div>
-            <div id="categoriesContainer"></div>
-            <div id="verticalGuideLinesContainer"></div>
-            <div class="age-line" id="ageLine"></div>
-        </div>
-        <p class="progres-indicador" id="progressFites">Fites marcades: 0</p>
 
-        <!-- Signes d'alerta -->
-        <div class="mt-8" role="region" aria-labelledby="signesAlertaTitle">
+            <div id="fitesLlistaContainer" aria-label="Llista de fites del desenvolupament"></div>
+
+            <div class="grafic-llegenda" aria-label="Llegenda del gràfic">
+                <span class="grafic-llegenda-item"><span class="grafic-llegenda-swatch grafic-llegenda-swatch--p50" aria-hidden="true"></span>P50–P75</span>
+                <span class="grafic-llegenda-item"><span class="grafic-llegenda-swatch grafic-llegenda-swatch--p75" aria-hidden="true"></span>P75–P95</span>
+                <span class="grafic-llegenda-item"><span class="grafic-llegenda-swatch grafic-llegenda-swatch--edat" aria-hidden="true"></span>Edat utilitzada</span>
+            </div>
+
+            <div class="fites-chart-container" id="fitesChartContainer"
+                 role="region" tabindex="0" aria-label="Gràfic desplaçable de fites del desenvolupament per mesos">
+                <div class="timeline-header" id="timelineHeader">
+                    <div class="timeline-header-space"></div>
+                </div>
+                <div id="categoriesContainer"></div>
+                <div id="verticalGuideLinesContainer"></div>
+                <div class="age-line" id="ageLine" aria-hidden="true"></div>
+            </div>
+            <p class="progres-indicador" id="progressFites">Fites explorades: 0 de 54</p>
+        </section>
+
+        <section class="mt-8" aria-labelledby="signesAlertaTitle">
             <div class="signes-cap">
-                <h2 class="text-xl font-semibold text-gray-700" id="signesAlertaTitle">
-                    Signes d'alerta (marqueu els presents)
-                </h2>
-                <button id="toggleSignesBtn" class="toggle-signes-btn" aria-pressed="false">
-                    Mostrar tots els signes
+                <div>
+                    <h2 class="section-title" id="signesAlertaTitle">Signes d’alerta</h2>
+                    <p class="section-subtitle">Registreu només allò que s’ha explorat o observat.</p>
+                </div>
+                <button id="toggleSignesBtn" class="toggle-signes-btn" type="button" aria-pressed="false">
+                    Mostra tots els signes
                 </button>
             </div>
-            <div id="signesAlertaContainer"
-                 class="bg-white p-4 rounded-md shadow grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-            </div>
-            <p class="progres-indicador" id="progressSignes">Signes marcats: 0</p>
-        </div>
+            <div id="signesAlertaContainer" class="bg-white p-4 rounded-md shadow grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3"></div>
+            <p class="progres-indicador" id="progressSignes">Signes explorats: 0 de 25</p>
+        </section>
 
-        <!-- Avis de privacitat -->
-        <div class="legal-container mt-8">
-            <h3 class="text-md font-semibold text-gray-700 mb-1">Avis de privacitat i us de dades:</h3>
-            <p>Aquesta eina esta dissenyada per a us local.
-               <strong>No s'emmagatzema cap informacio personal ni dada introduida en servidors externs.</strong>
-               Cap fitxer extern no rep les vostres dades: totes les dependencies (fonts, biblioteques) s'executen localment.
-            </p>
-            <p>El document PDF generat es desa unicament al vostre dispositiu local.
-               Es responsabilitat de l'usuari gestionar aquest arxiu d'acord amb les normatives de proteccio de dades aplicables.</p>
-            <p>Es recomana l'us d'identificadors anonims (sigles, codis) per referir-se als infants.</p>
-        </div>
+        <section class="font-container mt-8" aria-labelledby="fontTitol">
+            <h2 id="fontTitol" class="section-title">Font i abast</h2>
+            <p><strong>Versió de les dades:</strong> <span id="versioDades">2026.08</span>. Selecció de 54 fites de l’Haizea-Llevant per al tram de 0 a 30 mesos; no és la reproducció completa dels 97 ítems de 0 a 5 anys.</p>
+            <p>Fonts: <a href="https://www.euskariana.euskadi.eus/euskadib/eu/bib/1821322.do" target="_blank" rel="noreferrer">edició original del Govern Basc</a>, <a href="https://www.aepap.org/sites/default/files/noticia/archivos-adjuntos/indicaciones_para_valorar_el_desarrollo_psicomotor_en_el_estudio_laydi.pdf" target="_blank" rel="noreferrer">adaptació professional de l’AEPap</a> i <a href="https://salutpublica.gencat.cat/web/.content/minisite/aspcat/promocio_salut/infancia-adolescencia/02infancia-amb-salut/protocol-preventiu-edat-pediatrica-2025.pdf" target="_blank" rel="noreferrer">protocol pediàtric de Catalunya de 2025</a>.</p>
+        </section>
 
-        <!-- Botons d'accio -->
+        <section class="legal-container mt-8" aria-labelledby="privacitatTitol">
+            <h2 id="privacitatTitol" class="section-title">Privacitat i ús de les dades</h2>
+            <p>L’eina funciona localment al navegador. No envia ni desa les dades introduïdes en cap servidor, base de dades, galeta o emmagatzematge persistent.</p>
+            <p>El PDF es genera al dispositiu. Utilitzeu únicament identificadors pseudonimitzats com <span translate="no">ID_001</span> i custodieu el document d’acord amb la normativa aplicable.</p>
+        </section>
+
         <div class="mt-8 mb-12 botons-accio">
-            <button id="novaValoracioBtn" class="nova-valoracio-btn">
-                Nova valoracio
-            </button>
-            <button id="desarPdfBtn">
-                Desar informe de seguiment en PDF
-            </button>
+            <button id="novaValoracioBtn" class="nova-valoracio-btn" type="button">Esborra la valoració</button>
+            <button id="desarPdfBtn" type="button">Desa l’informe en PDF</button>
         </div>
+    </main>
 
-    </main><!-- fi #contingut-principal -->
+    <div id="tooltip" class="tooltip hidden" role="tooltip"></div>
 
-    <!-- Tooltip flotant -->
-    <div id="tooltip" class="tooltip hidden" role="tooltip" aria-live="polite"></div>
-
-    <!-- Registre del Service Worker (PWA) -->
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
@@ -184,13 +202,11 @@
             });
         }
     </script>
-
-    <!-- Scripts (ordre important: llibreria → dades → grafic → pdf → main) -->
     <script src="assets/libs/jspdf.umd.min.js"></script>
     <script src="assets/js/data.js"></script>
+    <script src="assets/js/logic.js"></script>
     <script src="assets/js/chart.js"></script>
     <script src="assets/js/pdf.js"></script>
     <script src="assets/js/main.js"></script>
-
 </body>
 </html>

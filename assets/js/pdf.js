@@ -1,283 +1,200 @@
 'use strict';
 
-// ---------------------------------------------------------------------------
-// Helpers interns del PDF
-// ---------------------------------------------------------------------------
-const PDF_MARGIN      = 15;
-const PDF_LINE_HEIGHT = 7;
+const PDF_MARGIN = 15;
+const PDF_LINE_HEIGHT = 6;
 
-/**
- * Normalitza una cadena per a jsPDF (WinAnsi/Latin-1):
- * substitueix cometes tipografiques per cometes simples.
- */
-function normalitzarTextPdf(str) {
-    return String(str)
-        .replace(/[\u2018\u2019\u201A\u201B]/g, "'")  // cometes simples tipografiques
-        .replace(/[\u201C\u201D\u201E\u201F]/g, '"'); // cometes dobles tipografiques
+function normalitzarTextPdf(text) {
+    return String(text)
+        .replace(/[\u2018\u2019\u201A\u201B]/g, "'")
+        .replace(/[\u201C\u201D\u201E\u201F]/g, '"')
+        .replace(/[\u2013\u2014]/g, '-')
+        .replace(/\u2212/g, '-');
 }
 
-/**
- * Afegeix la capçalera de l'informe a la pagina actual.
- * Retorna el yPos despres de la capçalera.
- */
-function afegirCapcalera(doc, nomInfant, edatText, dataActual) {
+function afegirCapcalera(doc, identificador, edatText, dataActual) {
     const pageWidth = doc.internal.pageSize.getWidth();
-
     doc.setFontSize(9);
-    doc.setTextColor(120, 120, 120);
-    doc.text(
-        'Eina de seguiment del desenvolupament psicomotor infantil',
-        pageWidth / 2,
-        10,
-        { align: 'center' }
-    );
+    doc.setTextColor(100, 100, 100);
+    doc.text('Seguiment orientatiu del desenvolupament infantil', pageWidth / 2, 10, { align: 'center' });
     doc.setFontSize(8);
-    doc.text(
-        `Infant: ${nomInfant}  |  Edat: ${edatText}  |  Data: ${dataActual}`,
-        pageWidth / 2,
-        16,
-        { align: 'center' }
-    );
+    doc.text(normalitzarTextPdf(`Identificador: ${identificador} | ${edatText} | Data: ${dataActual}`), pageWidth / 2, 16, { align: 'center' });
     doc.setDrawColor(200, 200, 200);
     doc.line(PDF_MARGIN, 19, pageWidth - PDF_MARGIN, 19);
     doc.setTextColor(0, 0, 0);
-
-    return 26; // yPos despres de la capçalera
+    return 26;
 }
 
-/**
- * Recorre totes les pagines i afegeix el peu amb numero de pagina.
- */
 function afegirPeusDePagina(doc) {
     const totalPagines = doc.getNumberOfPages();
-    const pageWidth    = doc.internal.pageSize.getWidth();
-    const pageHeight   = doc.internal.pageSize.getHeight();
-
-    for (let i = 1; i <= totalPagines; i++) {
-        doc.setPage(i);
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    for (let pagina = 1; pagina <= totalPagines; pagina += 1) {
+        doc.setPage(pagina);
         doc.setFontSize(7);
-        doc.setTextColor(150, 150, 150);
-        doc.text(
-            'Document generat localment. No substitueix el diagnostic professional.',
-            PDF_MARGIN,
-            pageHeight - 8
-        );
-        doc.text(
-            `Pagina ${i} de ${totalPagines}`,
-            pageWidth - PDF_MARGIN,
-            pageHeight - 8,
-            { align: 'right' }
-        );
+        doc.setTextColor(130, 130, 130);
+        doc.text(normalitzarTextPdf(`Dades ${METADADES_INSTRUMENT.versioDades} | Document local | No és una prova diagnòstica`), PDF_MARGIN, pageHeight - 8);
+        doc.text(`Pàgina ${pagina} de ${totalPagines}`, pageWidth - PDF_MARGIN, pageHeight - 8, { align: 'right' });
         doc.setTextColor(0, 0, 0);
     }
 }
 
-/**
- * Comprova si cal afegir una pagina nova i, si es aixi, la crea amb capçalera.
- * Retorna el yPos actualitzat.
- */
-function comprovarSaltPagina(doc, yPos, nomInfant, edatText, dataActual) {
-    const pageHeight = doc.internal.pageSize.getHeight();
-    if (yPos > pageHeight - PDF_MARGIN * 3) {
-        doc.addPage();
-        return afegirCapcalera(doc, nomInfant, edatText, dataActual);
-    }
-    return yPos;
+function comprovarSaltPagina(doc, y, context) {
+    if (y <= doc.internal.pageSize.getHeight() - PDF_MARGIN * 2.5) return y;
+    doc.addPage();
+    return afegirCapcalera(doc, context.identificador, context.edatText, context.dataActual);
 }
 
-// ---------------------------------------------------------------------------
-// Funcio principal exportada
-// ---------------------------------------------------------------------------
-function generarResumPDF() {
-    const btn = document.getElementById('desarPdfBtn');
+function afegirLinies(doc, text, y, context, opcions = {}) {
+    const sagnat = opcions.sagnat || 0;
+    const amplada = doc.internal.pageSize.getWidth() - PDF_MARGIN * 2 - sagnat;
+    const linies = doc.splitTextToSize(normalitzarTextPdf(text), amplada);
+    linies.forEach(linia => {
+        y = comprovarSaltPagina(doc, y, context);
+        doc.text(linia, PDF_MARGIN + sagnat, y);
+        y += PDF_LINE_HEIGHT;
+    });
+    return y;
+}
 
-    // Feedback visual: boton en estat "generant"
-    btn.textContent = 'Generant informe...';
-    btn.disabled    = true;
+function afegirTitolSeccio(doc, text, y, context) {
+    y = comprovarSaltPagina(doc, y + 4, context);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(12);
+    doc.text(normalitzarTextPdf(text), PDF_MARGIN, y);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    return y + PDF_LINE_HEIGHT * 1.5;
+}
+
+function etiquetaPosicioPercentil(fita, edatMesos) {
+    const posicio = classificarFitaNoAssolida(fita, edatMesos);
+    return ({
+        abans_p50: 'abans del P50',
+        entre_p50_p75: 'entre P50 i P75',
+        entre_p75_p95: 'entre P75 i P95',
+        despres_p95: 'després del P95'
+    })[posicio] || 'edat no disponible';
+}
+
+function generarResumPDF() {
+    const boto = document.getElementById('desarPdfBtn');
+    boto.textContent = 'Generant l’informe…';
+    boto.disabled = true;
 
     try {
         const { jsPDF } = window.jspdf;
-        const doc        = new jsPDF();
-
-        const nomInfant  = normalitzarTextPdf(
-            document.getElementById('nomInfant').value || 'No especificat'
-        );
-
-        // Calcular text d'edat
-        let edatText = 'No especificada';
-        if (edatPrecisaInfant.totalMesosComplets !== null) {
-            edatText = `${edatPrecisaInfant.totalMesosComplets} mesos`;
-            const dataNaixementInput = document.getElementById('dataNaixement');
-            if (edatPrecisaInfant.diesTranscorregutsEnMesActual > 0 && dataNaixementInput.value) {
-                edatText += ` i ${edatPrecisaInfant.diesTranscorregutsEnMesActual} dies`;
-            } else if (!dataNaixementInput.value) {
-                edatText += ' (edat manual)';
-            }
-        } else {
-            const edatInfantInput = document.getElementById('edatInfant');
-            if (edatInfantInput.value) {
-                edatText = `${edatInfantInput.value} mesos (edat manual)`;
-            }
+        const doc = new jsPDF();
+        const identificador = normalitzarTextPdf(document.getElementById('identificadorInfant').value.trim() || 'No indicat');
+        const dataActual = new Intl.DateTimeFormat('ca-ES', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+        const edatCronologica = estatEdatInfant.edatCronologicaMesos;
+        const edatAvaluacio = estatEdatInfant.edatAvaluacioMesos;
+        let edatText = 'Edat no indicada';
+        if (Number.isFinite(edatCronologica)) {
+            edatText = `Edat cronològica: ${formatNombre(edatCronologica)} mesos`;
+            if (estatEdatInfant.aplicaCorreccio) edatText += `; edat corregida: ${formatNombre(edatAvaluacio)} mesos`;
         }
+        const context = { identificador, edatText, dataActual };
+        let y = afegirCapcalera(doc, identificador, edatText, dataActual);
 
-        const dataActual = new Date().toLocaleDateString('ca-ES', {
-            year: 'numeric', month: '2-digit', day: '2-digit'
-        });
-
-        // --- Pagina 1: capçalera + titol principal ---
-        let yPos = afegirCapcalera(doc, nomInfant, edatText, dataActual);
-
+        doc.setFont('helvetica', 'bold');
         doc.setFontSize(15);
-        doc.setFont('helvetica', 'bold');
-        doc.text('Informe de seguiment del desenvolupament psicomotor', doc.internal.pageSize.getWidth() / 2, yPos, { align: 'center' });
-        yPos += PDF_LINE_HEIGHT * 2;
-
-        doc.setFontSize(11);
+        doc.text('Informe de seguiment del desenvolupament', doc.internal.pageSize.getWidth() / 2, y, { align: 'center' });
         doc.setFont('helvetica', 'normal');
-        doc.text(`Nom/Identificador: ${nomInfant}`, PDF_MARGIN, yPos);  yPos += PDF_LINE_HEIGHT;
-        doc.text(`Edat a la data del registre: ${edatText}`,            PDF_MARGIN, yPos);  yPos += PDF_LINE_HEIGHT;
-        doc.text(`Data del registre: ${dataActual}`,                    PDF_MARGIN, yPos);  yPos += PDF_LINE_HEIGHT * 1.5;
+        doc.setFontSize(9);
+        y += PDF_LINE_HEIGHT * 2;
+        y = afegirLinies(doc, METADADES_INSTRUMENT.avis, y, context);
 
-        doc.setDrawColor(100, 100, 100);
-        doc.line(PDF_MARGIN, yPos, doc.internal.pageSize.getWidth() - PDF_MARGIN, yPos);
-        yPos += PDF_LINE_HEIGHT * 2;
-
-        // --- Seccio 1: Fites no assolides ---
-        doc.setFontSize(13);
-        doc.setFont('helvetica', 'bold');
-        doc.text('Fites encara NO assolides (indicadors de possible retard):', PDF_MARGIN, yPos);
-        yPos += PDF_LINE_HEIGHT * 1.8;
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(10);
-
-        let algunaFita = false;
-
+        const fitesNoAssolides = [];
+        const fitesNoValorables = [];
+        let fitesExplorades = 0;
         dadesDesenvolupament.categories.forEach(categoria => {
-            const fitesMarcades = [];
             categoria.fites.forEach(fita => {
-                const cb = document.getElementById(`check-${generarIdSegur(fita.nomFita)}`);
-                if (cb && cb.checked) {
-                    fitesMarcades.push(fita.nomFita);
-                    algunaFita = true;
-                }
+                const estat = getEstatFita(fita.id);
+                if (estat) fitesExplorades += 1;
+                if (estat === 'no_assolida') fitesNoAssolides.push({ categoria: categoria.nom, fita });
+                if (estat === 'no_valorable') fitesNoValorables.push({ categoria: categoria.nom, fita });
             });
-
-            if (fitesMarcades.length === 0) return;
-
-            yPos = comprovarSaltPagina(doc, yPos, nomInfant, edatText, dataActual);
-            doc.setFontSize(11);
-            doc.setFont('helvetica', 'bold');
-            doc.text(`${normalitzarTextPdf(categoria.nom)}:`, PDF_MARGIN, yPos);
-            yPos += PDF_LINE_HEIGHT * 1.2;
-            doc.setFont('helvetica', 'normal');
-            doc.setFontSize(10);
-
-            fitesMarcades.forEach(nomFita => {
-                yPos = comprovarSaltPagina(doc, yPos, nomInfant, edatText, dataActual);
-                doc.text(`  - ${normalitzarTextPdf(nomFita)}`, PDF_MARGIN + 3, yPos);
-                yPos += PDF_LINE_HEIGHT * 0.9;
-            });
-
-            yPos += PDF_LINE_HEIGHT * 0.5;
         });
 
-        if (!algunaFita) {
-            yPos = comprovarSaltPagina(doc, yPos, nomInfant, edatText, dataActual);
-            doc.setTextColor(100, 100, 100);
-            doc.text("No s'han marcat fites com a 'no assolides'.", PDF_MARGIN + 3, yPos);
-            doc.setTextColor(0, 0, 0);
-            yPos += PDF_LINE_HEIGHT;
-        }
-
-        // --- Separador ---
-        yPos += PDF_LINE_HEIGHT;
-        yPos = comprovarSaltPagina(doc, yPos, nomInfant, edatText, dataActual);
-        doc.setDrawColor(100, 100, 100);
-        doc.line(PDF_MARGIN, yPos, doc.internal.pageSize.getWidth() - PDF_MARGIN, yPos);
-        yPos += PDF_LINE_HEIGHT * 2;
-
-        // --- Seccio 2: Signes d'alerta ---
-        doc.setFontSize(13);
-        doc.setFont('helvetica', 'bold');
-        doc.text("Signes d'alerta observats (presents):", PDF_MARGIN, yPos);
-        yPos += PDF_LINE_HEIGHT * 1.8;
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(10);
-
-        const signesMarcats = [];
+        const signesObservats = [];
+        const signesNoValorables = [];
+        let signesExplorats = 0;
         dadesDesenvolupament.signesAlerta.forEach(signe => {
-            const cb = document.getElementById(`check-signe-${generarIdSegur(signe.nomSigne)}`);
-            if (cb && cb.checked) signesMarcats.push(signe.nomSigne);
+            const estat = getEstatSigne(signe.id);
+            if (estat) signesExplorats += 1;
+            if (estat === 'observat') signesObservats.push(signe);
+            if (estat === 'no_valorable') signesNoValorables.push(signe);
         });
 
-        if (signesMarcats.length > 0) {
-            signesMarcats.forEach(nomSigne => {
-                yPos = comprovarSaltPagina(doc, yPos, nomInfant, edatText, dataActual);
-                doc.text(`  - ${normalitzarTextPdf(nomSigne)}`, PDF_MARGIN + 3, yPos);
-                yPos += PDF_LINE_HEIGHT * 0.9;
-            });
+        y = afegirTitolSeccio(doc, 'Cobertura de la valoració', y, context);
+        const totalFites = dadesDesenvolupament.categories.reduce((total, categoria) => total + categoria.fites.length, 0);
+        const totalSignes = dadesDesenvolupament.signesAlerta.length;
+        y = afegirLinies(doc, `${fitesExplorades} de ${totalFites} fites explorades. ${signesExplorats} de ${totalSignes} signes d’alerta explorats. Els elements no explorats no s’interpreten com a assolits ni com a absents.`, y, context);
+
+        y = afegirTitolSeccio(doc, 'Fites no assolides', y, context);
+        if (!fitesNoAssolides.length) {
+            y = afegirLinies(doc, 'No s’han registrat fites com a no assolides entre les explorades.', y, context);
         } else {
-            yPos = comprovarSaltPagina(doc, yPos, nomInfant, edatText, dataActual);
-            doc.setTextColor(100, 100, 100);
-            doc.text("No s'han marcat signes d'alerta com a 'presents'.", PDF_MARGIN + 3, yPos);
-            doc.setTextColor(0, 0, 0);
-        }
-
-        // --- Seccio 3: Observacions del professional (si n'hi ha) ---
-        const obsEl        = document.getElementById('observacions');
-        const observacions = obsEl ? normalitzarTextPdf(obsEl.value.trim()) : '';
-
-        if (observacions) {
-            yPos += PDF_LINE_HEIGHT;
-            yPos = comprovarSaltPagina(doc, yPos, nomInfant, edatText, dataActual);
-            doc.setDrawColor(100, 100, 100);
-            doc.line(PDF_MARGIN, yPos, doc.internal.pageSize.getWidth() - PDF_MARGIN, yPos);
-            yPos += PDF_LINE_HEIGHT * 2;
-
-            doc.setFontSize(13);
-            doc.setFont('helvetica', 'bold');
-            doc.text('Observacions del professional:', PDF_MARGIN, yPos);
-            yPos += PDF_LINE_HEIGHT * 1.8;
-            doc.setFont('helvetica', 'normal');
-            doc.setFontSize(10);
-
-            const lines = doc.splitTextToSize(
-                observacions,
-                doc.internal.pageSize.getWidth() - PDF_MARGIN * 2
-            );
-            lines.forEach(linia => {
-                yPos = comprovarSaltPagina(doc, yPos, nomInfant, edatText, dataActual);
-                doc.text(linia, PDF_MARGIN, yPos);
-                yPos += PDF_LINE_HEIGHT * 0.9;
+            fitesNoAssolides.forEach(({ categoria, fita }) => {
+                const posicio = etiquetaPosicioPercentil(fita, edatAvaluacio);
+                y = afegirLinies(doc, `- ${fita.nomFita} (${categoria}; ${posicio}; ${fita.id})`, y, context, { sagnat: 2 });
             });
         }
 
-        // --- Peus de pagina a totes les pagines ---
+        if (fitesNoValorables.length) {
+            y = afegirTitolSeccio(doc, 'Fites no valorables', y, context);
+            fitesNoValorables.forEach(({ categoria, fita }) => {
+                y = afegirLinies(doc, `- ${fita.nomFita} (${categoria}; ${fita.id})`, y, context, { sagnat: 2 });
+            });
+        }
+
+        y = afegirTitolSeccio(doc, 'Signes d’alerta observats', y, context);
+        if (!signesObservats.length) {
+            y = afegirLinies(doc, 'No s’han registrat signes d’alerta observats entre els explorats.', y, context);
+        } else {
+            signesObservats.forEach(signe => {
+                y = afegirLinies(doc, `- ${signe.nomSigne} (${signe.area}; ${signe.id})`, y, context, { sagnat: 2 });
+            });
+        }
+
+        if (signesNoValorables.length) {
+            y = afegirTitolSeccio(doc, 'Signes no valorables', y, context);
+            signesNoValorables.forEach(signe => {
+                y = afegirLinies(doc, `- ${signe.nomSigne} (${signe.area}; ${signe.id})`, y, context, { sagnat: 2 });
+            });
+        }
+
+        const preocupacions = document.getElementById('preocupacionsFamilia').value.trim();
+        if (preocupacions) {
+            y = afegirTitolSeccio(doc, 'Preocupacions comunicades', y, context);
+            y = afegirLinies(doc, preocupacions, y, context);
+        }
+        const observacions = document.getElementById('observacions').value.trim();
+        if (observacions) {
+            y = afegirTitolSeccio(doc, 'Observacions professionals', y, context);
+            y = afegirLinies(doc, observacions, y, context);
+        }
+
+        y = afegirTitolSeccio(doc, 'Interpretació prudent', y, context);
+        y = afegirLinies(doc, 'Cal interpretar les fites, els signes d’alerta, les possibles regressions i les preocupacions en conjunt i de manera longitudinal. Aquest resum no confirma ni descarta cap diagnòstic.', y, context);
         afegirPeusDePagina(doc);
 
-        // --- Desa el fitxer ---
-        const nomFitxer = `informe_seguiment_${
-            nomInfant.toLowerCase().replace(/[^a-z0-9]/g, '_') || 'infant'
-        }.pdf`;
-        doc.save(nomFitxer);
-
-        // Feedback exit
-        btn.textContent = 'Informe desat correctament';
-        btn.classList.add('pdf-btn--ok');
+        doc.save(`informe_seguiment_desenvolupament_${dataLocalIso(new Date())}.pdf`);
+        boto.textContent = 'Informe desat';
+        boto.classList.add('pdf-btn--ok');
         setTimeout(() => {
-            btn.textContent = 'Desar informe de seguiment en PDF';
-            btn.classList.remove('pdf-btn--ok');
-            btn.disabled = false;
-        }, 3000);
-
-    } catch (err) {
-        console.error('Error generant el PDF:', err);
-        btn.textContent = 'Error generant el PDF. Torneu-ho a intentar.';
-        btn.classList.add('pdf-btn--error');
+            boto.textContent = 'Desa l’informe en PDF';
+            boto.classList.remove('pdf-btn--ok');
+            boto.disabled = false;
+        }, 2500);
+    } catch (error) {
+        console.error('Error en generar el PDF:', error);
+        boto.textContent = 'No s’ha pogut generar. Torneu-ho a provar';
+        boto.classList.add('pdf-btn--error');
         setTimeout(() => {
-            btn.textContent = 'Desar informe de seguiment en PDF';
-            btn.classList.remove('pdf-btn--error');
-            btn.disabled = false;
+            boto.textContent = 'Desa l’informe en PDF';
+            boto.classList.remove('pdf-btn--error');
+            boto.disabled = false;
         }, 4000);
     }
 }

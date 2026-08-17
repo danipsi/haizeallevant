@@ -1,566 +1,502 @@
 'use strict';
 
-// ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
-const MAX_MESOS_GRAFIC           = 30;
-const MONTH_COLUMN_WIDTH_PX      = 35;
-const FITA_NAME_SPACE_PX_DESKTOP = 200;
-const FITA_NAME_SPACE_PX_MOBILE  = 150;
+const MAX_MESOS_GRAFIC = METADADES_INSTRUMENT.abastMesos;
+const MONTH_COLUMN_WIDTH_PX = 35;
+const FITA_NAME_SPACE_PX_DESKTOP = 280;
+const FITA_NAME_SPACE_PX_MOBILE = 220;
 
 document.documentElement.style.setProperty('--month-col-width', `${MONTH_COLUMN_WIDTH_PX}px`);
 
-// ---------------------------------------------------------------------------
-// Helpers de layout
-// ---------------------------------------------------------------------------
 function updateLeftColumnWidth() {
-    const w = window.innerWidth <= 768 ? FITA_NAME_SPACE_PX_MOBILE : FITA_NAME_SPACE_PX_DESKTOP;
-    document.documentElement.style.setProperty('--left-column-width', `${w}px`);
+    const amplada = window.innerWidth <= 768 ? FITA_NAME_SPACE_PX_MOBILE : FITA_NAME_SPACE_PX_DESKTOP;
+    document.documentElement.style.setProperty('--left-column-width', `${amplada}px`);
 }
-updateLeftColumnWidth();
 
 function getCurrentTimelineStartOffset() {
     return window.innerWidth <= 768 ? FITA_NAME_SPACE_PX_MOBILE : FITA_NAME_SPACE_PX_DESKTOP;
 }
 
 function generarIdSegur(text) {
-    return text.toLowerCase().replace(/[^\wA-Za-z0-9-]+/g, '-');
+    return String(text).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9-]+/g, '-').replace(/(^-|-$)/g, '');
 }
 
-// ---------------------------------------------------------------------------
-// Tooltip (ratolí, teclat i tàctil)
-// ---------------------------------------------------------------------------
+function escaparHtml(text) {
+    return String(text).replace(/[&<>'"]/g, caracter => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+    })[caracter]);
+}
+
+function obtenirEdatAvaluacioMesos() {
+    return typeof estatEdatInfant !== 'undefined' && Number.isFinite(estatEdatInfant.edatAvaluacioMesos)
+        ? estatEdatInfant.edatAvaluacioMesos
+        : null;
+}
+
+function formatMesos(valor) {
+    if (!Number.isFinite(valor)) return '—';
+    return new Intl.NumberFormat('ca-ES', { maximumFractionDigits: 1 }).format(valor);
+}
+
+updateLeftColumnWidth();
+
 let tooltipElement;
 let touchTooltipTimer;
 
-/** Posiciona i mostra el tooltip a partir d'un event de ratolí/tàctil. */
 function mostrarTooltip(text, event) {
     if (!tooltipElement) return;
     tooltipElement.innerHTML = text;
     tooltipElement.classList.remove('hidden');
 
-    const tw = tooltipElement.offsetWidth;
-    const th = tooltipElement.offsetHeight;
-    const ox = 15, oy = 15;
+    const amplada = tooltipElement.offsetWidth;
+    const alcada = tooltipElement.offsetHeight;
+    const margeX = 15;
+    const margeY = 15;
+    let x = event.pageX + margeX;
+    let y = event.pageY + margeY;
 
-    let nx = event.pageX + ox;
-    let ny = event.pageY + oy;
+    if (x + amplada > window.scrollX + window.innerWidth) x = event.pageX - amplada - margeX;
+    if (x < window.scrollX) x = window.scrollX + 5;
+    if (y + alcada > window.scrollY + window.innerHeight) y = event.pageY - alcada - margeY;
+    if (y < window.scrollY) y = window.scrollY + 5;
 
-    if (nx + tw > window.scrollX + window.innerWidth)  { nx = event.pageX - tw - ox; }
-    if (nx < window.scrollX)                            { nx = window.scrollX + 5; }
-    if (ny + th > window.scrollY + window.innerHeight) { ny = event.pageY - th - oy; }
-    if (ny < window.scrollY)                            { ny = window.scrollY + 5; }
-
-    tooltipElement.style.left = `${nx}px`;
-    tooltipElement.style.top  = `${ny}px`;
+    tooltipElement.style.left = `${x}px`;
+    tooltipElement.style.top = `${y}px`;
 }
 
-/**
- * Posiciona i mostra el tooltip a partir d'un element del DOM (per a focus de teclat).
- * El tooltip apareix sota l'element.
- */
-function mostrarTooltipAlElement(text, el) {
+function mostrarTooltipAlElement(text, element) {
     if (!tooltipElement) return;
-    tooltipElement.innerHTML = text;
-    tooltipElement.classList.remove('hidden');
-
-    const rect = el.getBoundingClientRect();
-    const tw   = tooltipElement.offsetWidth;
-
-    let nx = rect.left + window.scrollX;
-    let ny = rect.bottom + window.scrollY + 8;
-
-    if (nx + tw > window.scrollX + window.innerWidth) {
-        nx = window.scrollX + window.innerWidth - tw - 10;
-    }
-    if (nx < window.scrollX) nx = window.scrollX + 5;
-
-    tooltipElement.style.left = `${nx}px`;
-    tooltipElement.style.top  = `${ny}px`;
+    const rect = element.getBoundingClientRect();
+    mostrarTooltip(text, {
+        pageX: rect.left + window.scrollX,
+        pageY: rect.bottom + window.scrollY
+    });
 }
 
 function amagarTooltip() {
     if (tooltipElement) tooltipElement.classList.add('hidden');
 }
 
-// ---------------------------------------------------------------------------
-// Lògica clínica: estat d'una fita per l'edat actual
-// ---------------------------------------------------------------------------
-function calcularEstatFita(fita, edatMesos) {
-    if (edatMesos === null) return null;
-    if (edatMesos >= fita.edat_95) return 'critica';
-    if (edatMesos >= fita.edat_75) return 'preocupant';
-    if (edatMesos >= fita.edat_50) return 'atencio';
-    return null;
+function crearTextTooltipFita(fita) {
+    const font = METADADES_INSTRUMENT.fonts[fita.font];
+    return `<strong>${escaparHtml(fita.nomFita)}</strong>`
+        + `<br>${escaparHtml(fita.detall)}`
+        + `<br><strong>Criteri:</strong> ${escaparHtml(fita.criteri)}`
+        + `<br><small>P50: ${formatMesos(fita.edat_50)} m · P75: ${formatMesos(fita.edat_75)} m · P95: ${formatMesos(fita.edat_95)} m</small>`
+        + `<br><small>${escaparHtml(fita.id)} · ${escaparHtml(font?.etiqueta || fita.font)}</small>`;
+}
+
+function crearOpcionsEstatFita(select) {
+    [
+        ['', 'No explorada'],
+        ['assolida', 'Assolida'],
+        ['no_assolida', 'No assolida'],
+        ['no_valorable', 'No valorable']
+    ].forEach(([valor, etiqueta]) => {
+        const opcio = document.createElement('option');
+        opcio.value = valor;
+        opcio.textContent = etiqueta;
+        select.appendChild(opcio);
+    });
+}
+
+function crearOpcionsEstatSigne(select) {
+    [
+        ['', 'No explorat'],
+        ['no_observat', 'No observat'],
+        ['observat', 'Observat'],
+        ['no_valorable', 'No valorable']
+    ].forEach(([valor, etiqueta]) => {
+        const opcio = document.createElement('option');
+        opcio.value = valor;
+        opcio.textContent = etiqueta;
+        select.appendChild(opcio);
+    });
+}
+
+function getEstatFita(fitaId) {
+    return document.getElementById(`estat-${fitaId}`)?.value || '';
+}
+
+function getEstatSigne(signeId) {
+    return document.getElementById(`estat-signe-${signeId}`)?.value || '';
+}
+
+function sincronitzarEstatFita(fita, valor, origen) {
+    const principal = document.getElementById(`estat-${fita.id}`);
+    const llista = document.getElementById(`llista-estat-${fita.id}`);
+    if (principal && origen !== principal) principal.value = valor;
+    if (llista && origen !== llista) llista.value = valor;
+    actualitzarEstatFitaRow(document.getElementById(`fita-row-${fita.id}`), fita);
+    actualitzarItemLlista(document.getElementById(`llista-item-${fita.id}`), fita);
+    actualitzarResum();
 }
 
 function actualitzarEstatFitaRow(fitaRow, fita) {
-    fitaRow.classList.remove('fita-atencio', 'fita-preocupant', 'fita-critica');
-
-    const estat = fitaRow.classList.contains('fita-seleccionada')
-        ? calcularEstatFita(fita, edatPrecisaInfant.totalMesosComplets)
+    if (!fitaRow) return;
+    const estatValoracio = getEstatFita(fita.id);
+    const classificacio = estatValoracio === 'no_assolida'
+        ? classificarFitaNoAssolida(fita, obtenirEdatAvaluacioMesos())
         : null;
 
-    if (estat) fitaRow.classList.add(`fita-${estat}`);
+    fitaRow.classList.remove('fita-assolida', 'fita-no-assolida', 'fita-no-valorable', 'fita-supera-p95');
+    if (estatValoracio) fitaRow.classList.add(`fita-${estatValoracio.replace('_', '-')}`);
+    if (classificacio === 'despres_p95') fitaRow.classList.add('fita-supera-p95');
 
-    // Columna fixa (sticky): sincronitzar color de fons i indicador lateral
-    const nameContainer = fitaRow.querySelector('.fita-name-container');
-    if (nameContainer) {
-        nameContainer.classList.remove('fita-name--atencio', 'fita-name--preocupant', 'fita-name--critica');
-        if (estat) nameContainer.classList.add(`fita-name--${estat}`);
-    }
-
-    // Icona d'estat no basada únicament en color (a11y: 4.3)
-    const iconaEl = fitaRow.querySelector('.fita-estat-icona');
-    if (iconaEl) {
-        const icones = { critica: '⚠', preocupant: '!', atencio: '·' };
-        iconaEl.textContent = estat ? (icones[estat] || '') : '';
-        iconaEl.className   = estat ? `fita-estat-icona fita-estat-icona--${estat}` : 'fita-estat-icona';
+    const icona = fitaRow.querySelector('.fita-estat-icona');
+    if (icona) {
+        icona.textContent = estatValoracio === 'assolida' ? '✓'
+            : estatValoracio === 'no_assolida' ? (classificacio === 'despres_p95' ? '!' : '○')
+                : estatValoracio === 'no_valorable' ? '—' : '';
+        icona.className = `fita-estat-icona${estatValoracio ? ` fita-estat-icona--${estatValoracio}` : ''}`;
     }
 }
 
-// ---------------------------------------------------------------------------
-// Panell de resum dinàmic
-// ---------------------------------------------------------------------------
+function actualitzarItemLlista(item, fita) {
+    if (!item) return;
+    const estat = getEstatFita(fita.id);
+    const superaP95 = estat === 'no_assolida'
+        && classificarFitaNoAssolida(fita, obtenirEdatAvaluacioMesos()) === 'despres_p95';
+    item.dataset.estat = estat;
+    item.classList.toggle('llista-fita-item--supera-p95', superaP95);
+}
+
 function actualitzarResum() {
     const resumPanel = document.getElementById('resumPanel');
     if (!resumPanel) return;
 
-    const edatMesos = edatPrecisaInfant.totalMesosComplets;
+    const edatMesos = obtenirEdatAvaluacioMesos();
+    let explorades = 0;
+    let assolides = 0;
+    let noAssolides = 0;
+    let noValorables = 0;
+    let despresP95 = 0;
 
-    if (edatMesos === null) {
-        resumPanel.className = 'resum-panel resum-panel--buit';
-        resumPanel.innerHTML = '<p class="resum-hint">Introduiu l\'edat de l\'infant per veure el resum de la valoracio.</p>';
-        return;
-    }
-
-    let totalMarcades = 0, critiques = 0, preocupants = 0;
-    dadesDesenvolupament.categories.forEach(cat => {
-        cat.fites.forEach(fita => {
-            const cb = document.getElementById(`check-${generarIdSegur(fita.nomFita)}`);
-            if (!cb || !cb.checked) return;
-            totalMarcades++;
-            const estat = calcularEstatFita(fita, edatMesos);
-            if (estat === 'critica')     critiques++;
-            else if (estat === 'preocupant') preocupants++;
+    dadesDesenvolupament.categories.forEach(categoria => {
+        categoria.fites.forEach(fita => {
+            const estat = getEstatFita(fita.id);
+            if (!estat) return;
+            explorades += 1;
+            if (estat === 'assolida') assolides += 1;
+            if (estat === 'no_valorable') noValorables += 1;
+            if (estat === 'no_assolida') {
+                noAssolides += 1;
+                if (classificarFitaNoAssolida(fita, edatMesos) === 'despres_p95') despresP95 += 1;
+            }
         });
     });
 
-    let signesMarcats = 0;
+    let signesExplorats = 0;
+    let signesObservats = 0;
     dadesDesenvolupament.signesAlerta.forEach(signe => {
-        const cb = document.getElementById(`check-signe-${generarIdSegur(signe.nomSigne)}`);
-        if (cb && cb.checked) signesMarcats++;
+        const estat = getEstatSigne(signe.id);
+        if (estat) signesExplorats += 1;
+        if (estat === 'observat') signesObservats += 1;
     });
 
-    let nivell = 'ok';
-    if (critiques > 0 || signesMarcats > 0) nivell = 'critica';
-    else if (preocupants > 0)               nivell = 'atencio';
+    const preocupacions = document.getElementById('preocupacionsFamilia')?.value.trim() || '';
+    const hiHaDades = explorades > 0 || signesExplorats > 0 || preocupacions.length > 0;
+    let nivell = 'buit';
+    if (hiHaDades) nivell = despresP95 > 0 || signesObservats > 0 ? 'revisio' : (noAssolides > 0 || preocupacions ? 'seguiment' : 'sense-alertes');
 
-    const icones = { critica: '⚠', atencio: '◉', ok: '✓' };
+    const edatText = Number.isFinite(edatMesos) ? `${formatMesos(edatMesos)} mesos` : 'edat no indicada';
+    let html = `<h2 id="resumTitol" class="resum-titol">Resum descriptiu · ${edatText}</h2>`;
 
-    let html = `<div class="resum-titol">${icones[nivell]} Resum de la valoracio — ${edatMesos} mesos</div>`;
-    html += '<div class="resum-grid">';
-    html += `<div class="resum-item"><span class="resum-num">${totalMarcades}</span><span class="resum-label">fites no assolides</span></div>`;
-    if (critiques > 0) {
-        html += `<div class="resum-item resum-item--critica"><span class="resum-num">${critiques}</span><span class="resum-label">superen el P95 ⚠</span></div>`;
+    if (!hiHaDades) {
+        html += '<p class="resum-hint">Exploreu les fites i els signes d’alerta per obtenir un resum. Els camps buits no es consideren assolits ni absents.</p>';
+    } else {
+        html += '<div class="resum-grid">';
+        html += `<div class="resum-item"><span class="resum-num">${explorades}</span><span class="resum-label">fites explorades</span></div>`;
+        html += `<div class="resum-item"><span class="resum-num">${assolides}</span><span class="resum-label">assolides</span></div>`;
+        html += `<div class="resum-item"><span class="resum-num">${noAssolides}</span><span class="resum-label">no assolides</span></div>`;
+        html += `<div class="resum-item"><span class="resum-num">${noValorables}</span><span class="resum-label">no valorables</span></div>`;
+        html += `<div class="resum-item${signesObservats ? ' resum-item--revisio' : ''}"><span class="resum-num">${signesObservats}</span><span class="resum-label">signes observats</span></div>`;
+        html += '</div>';
+
+        const missatge = nivell === 'revisio'
+            ? 'Hi ha indicadors que justifiquen una valoració global i un seguiment professional. El resultat no estableix cap diagnòstic.'
+            : nivell === 'seguiment'
+                ? 'Hi ha elements per seguir longitudinalment i comentar amb la família i els professionals de referència.'
+                : 'No s’han registrat alertes entre els elements explorats. Aquest resultat parcial no descarta dificultats del desenvolupament.';
+        html += `<p class="resum-recomanacio resum-recomanacio--${nivell}">${missatge}</p>`;
+        if (despresP95 > 0) html += `<p class="resum-detail">${despresP95} fita o fites no assolides se situen després del P95 de la mostra de referència.</p>`;
     }
-    if (preocupants > 0) {
-        html += `<div class="resum-item resum-item--preocupant"><span class="resum-num">${preocupants}</span><span class="resum-label">entre P75 i P95</span></div>`;
-    }
-    html += `<div class="resum-item${signesMarcats > 0 ? ' resum-item--critica' : ''}"><span class="resum-num">${signesMarcats}</span><span class="resum-label">signes d'alerta</span></div>`;
-    html += '</div>';
-
-    const missatges = {
-        critica: '⚠ Es recomana valoracio professional: hi ha fites que superen el P95 o signes d\'alerta presents.',
-        atencio: 'Seguiment proper recomanat: hi ha fites no assolides properes al P95.',
-        ok: totalMarcades > 0
-            ? 'Les fites no assolides estan dins dels rangs d\'edat esperats. Continuar el seguiment habitual.'
-            : 'Cap fita marcada com a no assolida ni signe d\'alerta present.'
-    };
-    html += `<div class="resum-recomanacio resum-recomanacio--${nivell}">${missatges[nivell]}</div>`;
 
     resumPanel.className = `resum-panel resum-panel--${nivell}`;
     resumPanel.innerHTML = html;
 
-    // Sincronitzar vista llista
+    const totalFites = dadesDesenvolupament.categories.reduce((total, categoria) => total + categoria.fites.length, 0);
+    const progressFites = document.getElementById('progressFites');
+    if (progressFites) progressFites.textContent = `Fites explorades: ${explorades} de ${totalFites}`;
+    const progressSignes = document.getElementById('progressSignes');
+    if (progressSignes) progressSignes.textContent = `Signes explorats: ${signesExplorats} de ${dadesDesenvolupament.signesAlerta.length}`;
+
     actualitzarVistaLlista();
-
-    // Indicadors de progrés
-    const totalFites  = dadesDesenvolupament.categories.reduce((acc, cat) => acc + cat.fites.length, 0);
-    const totalSignes = dadesDesenvolupament.signesAlerta.length;
-
-    const progFites = document.getElementById('progressFites');
-    if (progFites) progFites.textContent = `Fites marcades: ${totalMarcades} de ${totalFites}`;
-
-    const progSignes = document.getElementById('progressSignes');
-    if (progSignes) progSignes.textContent = `Signes marcats: ${signesMarcats} de ${totalSignes}`;
 }
 
-// ---------------------------------------------------------------------------
-// Construcció de la taula
-// ---------------------------------------------------------------------------
+function crearBotoInformacio(textTooltip, etiqueta) {
+    const boto = document.createElement('button');
+    boto.type = 'button';
+    boto.className = 'fita-info-btn';
+    boto.textContent = 'i';
+    boto.setAttribute('aria-label', `Mostra els detalls de ${etiqueta}`);
+    boto.setAttribute('aria-describedby', 'tooltip');
+    boto.addEventListener('click', event => {
+        event.stopPropagation();
+        mostrarTooltipAlElement(textTooltip, boto);
+        clearTimeout(touchTooltipTimer);
+        touchTooltipTimer = setTimeout(amagarTooltip, 5000);
+    });
+    boto.addEventListener('focus', () => mostrarTooltipAlElement(textTooltip, boto));
+    boto.addEventListener('blur', amagarTooltip);
+    return boto;
+}
+
 function initTaula() {
     tooltipElement = document.getElementById('tooltip');
+    const categoriesContainer = document.getElementById('categoriesContainer');
+    const signesContainer = document.getElementById('signesAlertaContainer');
+    const timelineHeader = document.getElementById('timelineHeader');
+    categoriesContainer.innerHTML = '';
+    signesContainer.innerHTML = '';
 
-    const categoriesContainer   = document.getElementById('categoriesContainer');
-    const signesAlertaContainer = document.getElementById('signesAlertaContainer');
-    const timelineHeader        = document.getElementById('timelineHeader');
-
-    categoriesContainer.innerHTML   = '';
-    signesAlertaContainer.innerHTML = '';
-
-    // Capçalera de mesos
-    timelineHeader.querySelectorAll('.timeline-month').forEach(el => el.remove());
-    for (let i = 1; i <= MAX_MESOS_GRAFIC; i++) {
-        const div = document.createElement('div');
-        div.className   = 'timeline-month';
-        div.textContent = i;
-        timelineHeader.appendChild(div);
+    timelineHeader.querySelectorAll('.timeline-month').forEach(element => element.remove());
+    for (let mes = 1; mes <= MAX_MESOS_GRAFIC; mes += 1) {
+        const etiquetaMes = document.createElement('div');
+        etiquetaMes.className = 'timeline-month';
+        etiquetaMes.textContent = mes;
+        timelineHeader.appendChild(etiquetaMes);
     }
 
-    // Categories i fites
     dadesDesenvolupament.categories.forEach(categoria => {
-        const catDiv = document.createElement('div');
-        catDiv.className            = 'category-row';
-        catDiv.setAttribute('role', 'group');
-        catDiv.setAttribute('aria-labelledby', `cat-titol-${generarIdSegur(categoria.nom)}`);
+        const seccioCategoria = document.createElement('section');
+        seccioCategoria.className = 'category-row';
+        seccioCategoria.setAttribute('aria-labelledby', `categoria-${categoria.id}`);
 
-        const titol = document.createElement('h4');
-        titol.className   = 'category-row-title';
+        const titol = document.createElement('h3');
+        titol.className = 'category-row-title';
+        titol.id = `categoria-${categoria.id}`;
         titol.textContent = categoria.nom;
-        titol.id          = `cat-titol-${generarIdSegur(categoria.nom)}`;
 
         const instruccio = document.createElement('p');
-        instruccio.className = 'category-instruction-text no-break-text';
-        instruccio.innerHTML = '(marqueu les NO&nbsp;assolides)';
+        instruccio.className = 'category-instruction-text';
+        instruccio.textContent = 'Seleccioneu l’estat de cada fita';
 
-        const fitesWrapper = document.createElement('div');
-        categoria.fites.sort((a, b) => a.edat_50 - b.edat_50);
+        const wrapper = document.createElement('div');
+        [...categoria.fites].sort((a, b) => a.edat_50 - b.edat_50).forEach(fita => {
+            const tooltip = crearTextTooltipFita(fita);
+            const fila = document.createElement('div');
+            fila.className = 'fita-row';
+            fila.id = `fita-row-${fita.id}`;
 
-        categoria.fites.forEach(fita => {
-            const ttText = `<strong>${fita.nomFita}</strong><br>${fita.detall}<br><small>Edats: ${fita.edat_50}m (50%) · ${fita.edat_75}m (75%) · ${fita.edat_95}m (95%)</small>`;
+            const nomContainer = document.createElement('div');
+            nomContainer.className = 'fita-name-container';
+            const capNom = document.createElement('div');
+            capNom.className = 'fita-name-heading';
+            const icona = document.createElement('span');
+            icona.className = 'fita-estat-icona';
+            icona.setAttribute('aria-hidden', 'true');
+            const nom = document.createElement('span');
+            nom.className = 'fita-name-text';
+            nom.textContent = fita.nomFita;
+            capNom.append(icona, nom, crearBotoInformacio(tooltip, fita.nomFita));
 
-            const fitaRow = document.createElement('div');
-            fitaRow.className = 'fita-row';
-            fitaRow.id        = `fita-row-${generarIdSegur(fita.nomFita)}`;
+            const labelSelect = document.createElement('label');
+            labelSelect.className = 'sr-only';
+            labelSelect.htmlFor = `estat-${fita.id}`;
+            labelSelect.textContent = `Estat de la fita ${fita.nomFita}`;
+            const select = document.createElement('select');
+            select.id = `estat-${fita.id}`;
+            select.name = `estat-${fita.id}`;
+            select.className = 'fita-estat-select';
+            select.dataset.fitaId = fita.id;
+            crearOpcionsEstatFita(select);
+            select.addEventListener('change', () => sincronitzarEstatFita(fita, select.value, select));
+            nomContainer.append(capNom, labelSelect, select);
 
-            // --- Columna esquerra: checkbox + icona estat + nom ---
-            const nameContainer = document.createElement('div');
-            nameContainer.className = 'fita-name-container';
-
-            const checkbox = document.createElement('input');
-            checkbox.type                  = 'checkbox';
-            checkbox.id                    = `check-${generarIdSegur(fita.nomFita)}`;
-            checkbox.dataset.fitaNom       = fita.nomFita;
-            checkbox.dataset.fitaCategoria = categoria.nom;
-            // a11y 4.2: aria-label descriptiu per a lectors de pantalla
-            checkbox.setAttribute('aria-label',
-                `Marcar "${fita.nomFita}" com a no assolida. ` +
-                `P50: ${fita.edat_50}m, P75: ${fita.edat_75}m, P95: ${fita.edat_95}m`);
-
-            checkbox.addEventListener('change', function () {
-                fitaRow.classList.toggle('fita-seleccionada', this.checked);
-                actualitzarEstatFitaRow(fitaRow, fita);
-                actualitzarResum();
-            });
-            // a11y 4.1: tooltip accessible per teclat
-            checkbox.addEventListener('focus', () => mostrarTooltipAlElement(ttText, checkbox));
-            checkbox.addEventListener('blur',  amagarTooltip);
-
-            // a11y 4.3: icona d'estat (no depèn únicament del color)
-            const iconaEstat = document.createElement('span');
-            iconaEstat.className = 'fita-estat-icona';
-            iconaEstat.setAttribute('aria-hidden', 'true');
-
-            const nameSpan = document.createElement('span');
-            nameSpan.textContent = fita.nomFita;
-
-            nameContainer.appendChild(checkbox);
-            nameContainer.appendChild(iconaEstat);
-            nameContainer.appendChild(nameSpan);
-
-            // Ratolí
-            nameContainer.addEventListener('mousemove', e => mostrarTooltip(ttText, e));
-            nameContainer.addEventListener('mouseout',  amagarTooltip);
-            // a11y 4.1: tàctil
-            nameContainer.addEventListener('touchstart', e => {
-                clearTimeout(touchTooltipTimer);
-                mostrarTooltip(ttText, { pageX: e.touches[0].pageX, pageY: e.touches[0].pageY });
-                touchTooltipTimer = setTimeout(amagarTooltip, 2500);
-            }, { passive: true });
-
-            // --- Barra de temps ---
             const outerBars = document.createElement('div');
             outerBars.className = 'fita-bars-outer-container';
-
             const barsContainer = document.createElement('div');
-            barsContainer.className   = 'fita-bars-container';
+            barsContainer.className = 'fita-bars-container';
             barsContainer.style.width = `${MAX_MESOS_GRAFIC * MONTH_COLUMN_WIDTH_PX}px`;
-
-            const barDiv = document.createElement('div');
-            barDiv.className = 'fita-bar';
-
-            const seg1 = document.createElement('div');
-            seg1.className = 'fita-bar-segment1';
-            const seg2 = document.createElement('div');
-            seg2.className = 'fita-bar-segment2';
-
-            barDiv.appendChild(seg1);
-            barDiv.appendChild(seg2);
-            barDiv.addEventListener('mousemove', e => mostrarTooltip(ttText, e));
-            barDiv.addEventListener('mouseout',  amagarTooltip);
-            // a11y 4.1: tàctil a la barra
-            barDiv.addEventListener('touchstart', e => {
-                clearTimeout(touchTooltipTimer);
-                mostrarTooltip(ttText, { pageX: e.touches[0].pageX, pageY: e.touches[0].pageY });
-                touchTooltipTimer = setTimeout(amagarTooltip, 2500);
-            }, { passive: true });
-
-            barsContainer.appendChild(barDiv);
+            const barra = document.createElement('div');
+            barra.className = 'fita-bar';
+            barra.setAttribute('aria-hidden', 'true');
+            const segment1 = document.createElement('div');
+            segment1.className = 'fita-bar-segment1';
+            const segment2 = document.createElement('div');
+            segment2.className = 'fita-bar-segment2';
+            barra.append(segment1, segment2);
+            barra.addEventListener('mousemove', event => mostrarTooltip(tooltip, event));
+            barra.addEventListener('mouseout', amagarTooltip);
+            barsContainer.appendChild(barra);
             outerBars.appendChild(barsContainer);
-
-            fitaRow.appendChild(nameContainer);
-            fitaRow.appendChild(outerBars);
-            fitesWrapper.appendChild(fitaRow);
+            fila.append(nomContainer, outerBars);
+            wrapper.appendChild(fila);
         });
 
-        catDiv.appendChild(titol);
-        catDiv.appendChild(instruccio);
-        catDiv.appendChild(fitesWrapper);
-        categoriesContainer.appendChild(catDiv);
+        seccioCategoria.append(titol, instruccio, wrapper);
+        categoriesContainer.appendChild(seccioCategoria);
     });
 
-    // Signes d'alerta
     dadesDesenvolupament.signesAlerta.forEach(signe => {
-        const signeContainer = document.createElement('div');
-        signeContainer.className = 'signe-alerta-item-container no-esperada-alerta';
-        signeContainer.id        = `signe-container-${generarIdSegur(signe.nomSigne)}`;
+        const item = document.createElement('div');
+        item.className = 'signe-alerta-item-container no-esperada-alerta';
+        item.id = `signe-container-${signe.id}`;
+        const textWrapper = document.createElement('div');
+        textWrapper.className = 'signe-text-wrapper';
+        const cap = document.createElement('div');
+        cap.className = 'signe-heading';
+        const nom = document.createElement('span');
+        nom.textContent = signe.nomSigne;
+        const badge = document.createElement('span');
+        badge.className = 'signe-edat-badge';
+        badge.textContent = signe.edat_des_de > 0 ? `≥${signe.edat_des_de} m` : 'Qualsevol edat';
+        cap.append(nom, badge);
+        const area = document.createElement('span');
+        area.className = 'signe-area';
+        area.textContent = signe.area;
+        textWrapper.append(cap, area);
 
-        const checkboxSigne = document.createElement('input');
-        checkboxSigne.type             = 'checkbox';
-        checkboxSigne.id               = `check-signe-${generarIdSegur(signe.nomSigne)}`;
-        checkboxSigne.dataset.signeNom = signe.nomSigne;
-        // a11y 4.2: aria-label descriptiu
-        checkboxSigne.setAttribute('aria-label',
-            `Signe present: ${signe.nomSigne}. ` +
-            (signe.edat_des_de > 0
-                ? `A partir de ${signe.edat_des_de} mesos. `
-                : `A qualsevol edat. `) +
-            signe.detall
-        );
+        const label = document.createElement('label');
+        label.className = 'sr-only';
+        label.htmlFor = `estat-signe-${signe.id}`;
+        label.textContent = `Estat del signe ${signe.nomSigne}`;
+        const select = document.createElement('select');
+        select.id = `estat-signe-${signe.id}`;
+        select.name = `estat-signe-${signe.id}`;
+        select.className = 'signe-estat-select';
+        crearOpcionsEstatSigne(select);
+        select.addEventListener('change', () => {
+            item.classList.toggle('signe-observat', select.value === 'observat');
+            actualitzarResum();
+        });
 
-        checkboxSigne.addEventListener('change', actualitzarResum);
-
-        const signeText = document.createElement('span');
-        signeText.textContent = signe.nomSigne;
-
-        // a11y 4.3: badge d'edat visible (indicador no basat únicament en color)
-        const ageBadge = document.createElement('span');
-        ageBadge.className = 'signe-edat-badge';
-        ageBadge.textContent = signe.edat_des_de > 0 ? `≥${signe.edat_des_de}m` : '';
-        ageBadge.setAttribute('aria-hidden', 'true');
-
-        signeContainer.appendChild(checkboxSigne);
-        signeContainer.appendChild(signeText);
-        signeContainer.appendChild(ageBadge);
-
-        const ttSigne = `<strong>${signe.nomSigne}</strong><br>${signe.detall}` +
-            (signe.edat_des_de > 0
-                ? ` <small>(Considerar a partir de ${signe.edat_des_de} mesos).</small>`
-                : ` <small>(Considerar a qualsevol edat).</small>`);
-
-        // Ratolí
-        signeContainer.addEventListener('mousemove', e => mostrarTooltip(ttSigne, e));
-        signeContainer.addEventListener('mouseout',  amagarTooltip);
-        // a11y 4.1: teclat
-        checkboxSigne.addEventListener('focus', () => mostrarTooltipAlElement(ttSigne, checkboxSigne));
-        checkboxSigne.addEventListener('blur',  amagarTooltip);
-        // a11y 4.1: tàctil
-        signeContainer.addEventListener('touchstart', e => {
-            clearTimeout(touchTooltipTimer);
-            mostrarTooltip(ttSigne, { pageX: e.touches[0].pageX, pageY: e.touches[0].pageY });
-            touchTooltipTimer = setTimeout(amagarTooltip, 2500);
-        }, { passive: true });
-
-        signesAlertaContainer.appendChild(signeContainer);
+        const tooltip = `<strong>${escaparHtml(signe.nomSigne)}</strong><br>${escaparHtml(signe.detall)}<br><small>${escaparHtml(signe.area)} · ${signe.edat_des_de ? `a partir de ${signe.edat_des_de} mesos` : 'a qualsevol edat'}</small>`;
+        item.append(textWrapper, crearBotoInformacio(tooltip, signe.nomSigne), label, select);
+        signesContainer.appendChild(item);
     });
 
-    // Construir vista llista (mobil)
     initLlistaVista();
-
     requestAnimationFrame(actualitzarVisualitzacio);
 }
 
-// ---------------------------------------------------------------------------
-// Vista llista (mobil): construccio i sincronitzacio
-// ---------------------------------------------------------------------------
 function initLlistaVista() {
     const container = document.getElementById('fitesLlistaContainer');
     if (!container) return;
     container.innerHTML = '';
 
     dadesDesenvolupament.categories.forEach(categoria => {
-        const catDiv = document.createElement('div');
-        catDiv.className = 'llista-categoria';
+        const seccio = document.createElement('section');
+        seccio.className = 'llista-categoria';
+        const titol = document.createElement('h3');
+        titol.className = 'llista-categoria-nom';
+        titol.textContent = categoria.nom;
+        seccio.appendChild(titol);
 
-        const catNom = document.createElement('div');
-        catNom.className   = 'llista-categoria-nom';
-        catNom.textContent = categoria.nom;
-        catDiv.appendChild(catNom);
-
-        const fitesSorted = [...categoria.fites].sort((a, b) => a.edat_50 - b.edat_50);
-        fitesSorted.forEach(fita => {
-            const chartCbId = `check-${generarIdSegur(fita.nomFita)}`;
-            const ttText = `<strong>${fita.nomFita}</strong><br>${fita.detall}<br><small>Edats: ${fita.edat_50}m (50%) · ${fita.edat_75}m (75%) · ${fita.edat_95}m (95%)</small>`;
-
+        [...categoria.fites].sort((a, b) => a.edat_50 - b.edat_50).forEach(fita => {
             const item = document.createElement('div');
             item.className = 'llista-fita-item';
-            item.id        = `llista-item-${generarIdSegur(fita.nomFita)}`;
+            item.id = `llista-item-${fita.id}`;
+            const text = document.createElement('div');
+            text.className = 'llista-fita-text';
+            const nom = document.createElement('strong');
+            nom.textContent = fita.nomFita;
+            const edats = document.createElement('div');
+            edats.className = 'llista-fita-edat';
+            edats.textContent = `P50: ${formatMesos(fita.edat_50)} m · P75: ${formatMesos(fita.edat_75)} m · P95: ${formatMesos(fita.edat_95)} m`;
+            text.append(nom, edats);
 
-            item.addEventListener('touchstart', e => {
-                clearTimeout(touchTooltipTimer);
-                mostrarTooltip(ttText, { pageX: e.touches[0].pageX, pageY: e.touches[0].pageY });
-                touchTooltipTimer = setTimeout(amagarTooltip, 2500);
-            }, { passive: true });
-
-            const cb = document.createElement('input');
-            cb.type = 'checkbox';
-            cb.setAttribute('aria-label',
-                `Marcar "${fita.nomFita}" com a no assolida. ` +
-                `P50: ${fita.edat_50}m, P75: ${fita.edat_75}m, P95: ${fita.edat_95}m`
-            );
-            cb.addEventListener('change', function () {
-                const chartCb = document.getElementById(chartCbId);
-                if (chartCb) {
-                    chartCb.checked = this.checked;
-                    chartCb.dispatchEvent(new Event('change'));
-                }
-            });
-
-            const textDiv = document.createElement('div');
-            textDiv.className = 'llista-fita-text';
-
-            const nomSpan = document.createElement('span');
-            nomSpan.textContent = fita.nomFita;
-
-            const edatSpan = document.createElement('div');
-            edatSpan.className   = 'llista-fita-edat';
-            edatSpan.textContent = `P50: ${fita.edat_50}m · P75: ${fita.edat_75}m · P95: ${fita.edat_95}m`;
-
-            textDiv.appendChild(nomSpan);
-            textDiv.appendChild(edatSpan);
-            item.appendChild(cb);
-            item.appendChild(textDiv);
-            catDiv.appendChild(item);
+            const label = document.createElement('label');
+            label.className = 'sr-only';
+            label.htmlFor = `llista-estat-${fita.id}`;
+            label.textContent = `Estat de la fita ${fita.nomFita}`;
+            const select = document.createElement('select');
+            select.id = `llista-estat-${fita.id}`;
+            select.className = 'fita-estat-select';
+            crearOpcionsEstatFita(select);
+            select.addEventListener('change', () => sincronitzarEstatFita(fita, select.value, select));
+            item.append(text, crearBotoInformacio(crearTextTooltipFita(fita), fita.nomFita), label, select);
+            seccio.appendChild(item);
         });
-
-        container.appendChild(catDiv);
+        container.appendChild(seccio);
     });
 }
 
 function actualitzarVistaLlista() {
     dadesDesenvolupament.categories.forEach(categoria => {
         categoria.fites.forEach(fita => {
-            const chartCb = document.getElementById(`check-${generarIdSegur(fita.nomFita)}`);
-            const item    = document.getElementById(`llista-item-${generarIdSegur(fita.nomFita)}`);
-            if (!item || !chartCb) return;
-
-            const listCb = item.querySelector('input[type="checkbox"]');
-            if (listCb) listCb.checked = chartCb.checked;
-
-            item.classList.toggle('llista-fita-item--marcada', chartCb.checked);
+            const principal = document.getElementById(`estat-${fita.id}`);
+            const llista = document.getElementById(`llista-estat-${fita.id}`);
+            if (principal && llista && llista.value !== principal.value) llista.value = principal.value;
+            actualitzarItemLlista(document.getElementById(`llista-item-${fita.id}`), fita);
         });
     });
 }
 
-// ---------------------------------------------------------------------------
-// Actualitzacio visual completa
-// ---------------------------------------------------------------------------
 function actualitzarVisualitzacio() {
-    const timelineHeader              = document.getElementById('timelineHeader');
-    const categoriesContainer         = document.getElementById('categoriesContainer');
-    const ageLine                     = document.getElementById('ageLine');
-    const verticalGuideLinesContainer = document.getElementById('verticalGuideLinesContainer');
-    const edatInfantInput             = document.getElementById('edatInfant');
-    const signesAlertaContainer       = document.getElementById('signesAlertaContainer');
+    const timelineHeader = document.getElementById('timelineHeader');
+    const categoriesContainer = document.getElementById('categoriesContainer');
+    const ageLine = document.getElementById('ageLine');
+    const guiesContainer = document.getElementById('verticalGuideLinesContainer');
+    const signesContainer = document.getElementById('signesAlertaContainer');
+    if (!timelineHeader || !categoriesContainer || !ageLine || !guiesContainer) return;
 
-    const edatMesosComplets  = edatPrecisaInfant.totalMesosComplets;
-    const diesTranscorreguts = edatPrecisaInfant.diesTranscorregutsEnMesActual;
-    const diesDelMes         = edatPrecisaInfant.diesEnElMesActualDeEdat || 30.4375;
+    const edatMesos = obtenirEdatAvaluacioMesos();
+    const headerHeight = timelineHeader.offsetHeight;
+    const categoriesHeight = categoriesContainer.offsetHeight;
+    const offset = getCurrentTimelineStartOffset();
+    const ampladaTimeline = MAX_MESOS_GRAFIC * MONTH_COLUMN_WIDTH_PX;
 
-    const headerHeight        = timelineHeader.offsetHeight;
-    const categoriesHeight    = categoriesContainer.offsetHeight;
-    const timelineStartOffset = getCurrentTimelineStartOffset();
-    const totalTimelineWidth  = MAX_MESOS_GRAFIC * MONTH_COLUMN_WIDTH_PX;
-
-    // Guies verticals
-    verticalGuideLinesContainer.innerHTML    = '';
-    verticalGuideLinesContainer.style.top    = `${headerHeight}px`;
-    verticalGuideLinesContainer.style.height = `${categoriesHeight}px`;
-    verticalGuideLinesContainer.style.width  = `${totalTimelineWidth}px`;
-    verticalGuideLinesContainer.style.left   = `${timelineStartOffset}px`;
-
-    for (let i = 0; i < MAX_MESOS_GRAFIC; i++) {
-        const guide = document.createElement('div');
-        guide.className  = 'vertical-guide-line';
-        guide.style.left = `${i * MONTH_COLUMN_WIDTH_PX}px`;
-        guide.style.height = '100%';
-        verticalGuideLinesContainer.appendChild(guide);
+    guiesContainer.innerHTML = '';
+    Object.assign(guiesContainer.style, {
+        top: `${headerHeight}px`, height: `${categoriesHeight}px`, width: `${ampladaTimeline}px`, left: `${offset}px`
+    });
+    for (let mes = 0; mes < MAX_MESOS_GRAFIC; mes += 1) {
+        const guia = document.createElement('div');
+        guia.className = 'vertical-guide-line';
+        guia.style.left = `${mes * MONTH_COLUMN_WIDTH_PX}px`;
+        guiesContainer.appendChild(guia);
     }
 
-    // Barres de cada fita + estat clínic
     dadesDesenvolupament.categories.forEach(categoria => {
         categoria.fites.forEach(fita => {
-            const barDiv = document.querySelector(`#fita-row-${generarIdSegur(fita.nomFita)} .fita-bar`);
-            if (barDiv) {
-                const barLeftPx           = (fita.edat_50 - 1) * MONTH_COLUMN_WIDTH_PX;
-                const totalBarWidthMonths = Math.max(0, fita.edat_95 - fita.edat_50);
-                barDiv.style.left  = `${barLeftPx}px`;
-                barDiv.style.width = `${totalBarWidthMonths * MONTH_COLUMN_WIDTH_PX}px`;
-                const seg1 = barDiv.querySelector('.fita-bar-segment1');
-                const seg2 = barDiv.querySelector('.fita-bar-segment2');
-                if (seg1 && seg2 && totalBarWidthMonths > 0) {
-                    seg1.style.width = `${(Math.max(0, fita.edat_75 - fita.edat_50) / totalBarWidthMonths) * 100}%`;
-                    seg2.style.width = `${(Math.max(0, fita.edat_95 - fita.edat_75) / totalBarWidthMonths) * 100}%`;
+            const barra = document.querySelector(`#fita-row-${fita.id} .fita-bar`);
+            if (barra) {
+                const ampladaMesos = Math.max(0, fita.edat_95 - fita.edat_50);
+                barra.style.left = `${(fita.edat_50 - 1) * MONTH_COLUMN_WIDTH_PX}px`;
+                barra.style.width = `${ampladaMesos * MONTH_COLUMN_WIDTH_PX}px`;
+                const segment1 = barra.querySelector('.fita-bar-segment1');
+                const segment2 = barra.querySelector('.fita-bar-segment2');
+                if (ampladaMesos > 0) {
+                    segment1.style.width = `${((fita.edat_75 - fita.edat_50) / ampladaMesos) * 100}%`;
+                    segment2.style.width = `${((fita.edat_95 - fita.edat_75) / ampladaMesos) * 100}%`;
                 }
             }
-            const fitaRow = document.getElementById(`fita-row-${generarIdSegur(fita.nomFita)}`);
-            if (fitaRow) actualitzarEstatFitaRow(fitaRow, fita);
+            actualitzarEstatFitaRow(document.getElementById(`fita-row-${fita.id}`), fita);
         });
     });
 
-    // Línia d'edat
-    ageLine.style.top    = `${headerHeight}px`;
+    ageLine.style.top = `${headerHeight}px`;
     ageLine.style.height = `${categoriesHeight}px`;
-
-    if (edatMesosComplets !== null && edatMesosComplets >= 0) {
-        const fraccioMesPx = (diesTranscorreguts !== null && diesDelMes > 0)
-            ? (diesTranscorreguts / diesDelMes) * MONTH_COLUMN_WIDTH_PX : 0;
-        let posicio = (edatMesosComplets * MONTH_COLUMN_WIDTH_PX) + fraccioMesPx;
-        const maxPos = MAX_MESOS_GRAFIC * MONTH_COLUMN_WIDTH_PX;
-        posicio = Math.min(Math.max(posicio, 0), maxPos);
-        if (posicio < maxPos || edatMesosComplets === MAX_MESOS_GRAFIC) {
-            ageLine.style.left    = `${timelineStartOffset + posicio}px`;
-            ageLine.style.display = 'block';
-        } else {
-            ageLine.style.display = 'none';
-        }
+    if (Number.isFinite(edatMesos) && edatMesos <= MAX_MESOS_GRAFIC) {
+        ageLine.style.left = `${offset + edatMesos * MONTH_COLUMN_WIDTH_PX}px`;
+        ageLine.style.display = 'block';
     } else {
         ageLine.style.display = 'none';
     }
 
-    // Signes d'alerta: colorat + filtratge per rellevància
-    const edatInputMesos = parseFloat(edatInfantInput.value);
-    const hiHaEdat       = !isNaN(edatInputMesos);
-    const mostrantTots   = signesAlertaContainer?.dataset.mostrantTots === 'true';
-
+    const mostrantTots = signesContainer?.dataset.mostrantTots === 'true';
     dadesDesenvolupament.signesAlerta.forEach(signe => {
-        const sc = document.getElementById(`signe-container-${generarIdSegur(signe.nomSigne)}`);
-        if (!sc) return;
-        const esRellevant = hiHaEdat && edatInputMesos >= signe.edat_des_de;
-        sc.classList.remove('alerta-activa', 'no-esperada-alerta');
-        sc.classList.add(esRellevant ? 'alerta-activa' : 'no-esperada-alerta');
-        sc.classList.toggle('signe-no-rellevant', hiHaEdat && !esRellevant && !mostrantTots);
+        const item = document.getElementById(`signe-container-${signe.id}`);
+        if (!item) return;
+        const rellevant = Number.isFinite(edatMesos) && edatMesos >= signe.edat_des_de;
+        const observat = getEstatSigne(signe.id) === 'observat';
+        item.classList.toggle('signe-observat', observat);
+        item.classList.toggle('alerta-activa', rellevant);
+        item.classList.toggle('no-esperada-alerta', !rellevant);
+        item.classList.toggle('signe-no-rellevant', Number.isFinite(edatMesos) && !rellevant && !mostrantTots && !observat);
+        item.classList.toggle('signe-forcat-visible', mostrantTots || observat);
     });
 
     actualitzarResum();

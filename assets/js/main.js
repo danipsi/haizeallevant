@@ -1,282 +1,269 @@
 'use strict';
 
-// ---------------------------------------------------------------------------
-// Estat global compartit entre chart.js, pdf.js i main.js
-// ---------------------------------------------------------------------------
-let edatPrecisaInfant = {
-    totalMesosComplets:            null,
-    diesTranscorregutsEnMesActual: null,
-    diesEnElMesActualDeEdat:       null
+let estatEdatInfant = {
+    origen: null,
+    edatCronologicaMesos: null,
+    edatAvaluacioMesos: null,
+    mesosComplets: null,
+    diesTranscorreguts: null,
+    correccioMesos: 0,
+    aplicaCorreccio: false
 };
 
-// ---------------------------------------------------------------------------
-// Calcul d'edat a partir de la data de naixement
-// ---------------------------------------------------------------------------
-function calcularMesosDesdeData() {
-    const dataNaixementInput = document.getElementById('dataNaixement');
-    const edatInfantInput    = document.getElementById('edatInfant');
-    const dataNaixementStr   = dataNaixementInput.value;
-
-    if (!dataNaixementStr) {
-        edatInfantInput.value = '';
-        edatPrecisaInfant     = { totalMesosComplets: null, diesTranscorregutsEnMesActual: null, diesEnElMesActualDeEdat: null };
-        actualitzarVisualitzacio();
-        return;
-    }
-
-    const dataNaix = new Date(dataNaixementStr);
-    const avui     = new Date();
-
-    if (dataNaix > avui) {
-        edatInfantInput.value = '';
-        edatPrecisaInfant     = { totalMesosComplets: null, diesTranscorregutsEnMesActual: null, diesEnElMesActualDeEdat: null };
-        // Mostrar missatge d'error inline
-        const inputRect = dataNaixementInput.getBoundingClientRect();
-        mostrarTooltip('La data de naixement no pot ser futura.', {
-            pageX: inputRect.left + window.scrollX,
-            pageY: inputRect.bottom + window.scrollY + 5
-        });
-        setTimeout(amagarTooltip, 3000);
-        actualitzarVisualitzacio();
-        return;
-    }
-
-    let anys  = avui.getFullYear() - dataNaix.getFullYear();
-    let mesos = avui.getMonth()    - dataNaix.getMonth();
-    let dies  = avui.getDate()     - dataNaix.getDate();
-
-    if (dies < 0) {
-        mesos--;
-        dies += new Date(avui.getFullYear(), avui.getMonth(), 0).getDate();
-    }
-    if (mesos < 0) {
-        anys--;
-        mesos += 12;
-    }
-
-    const totalMesos = (anys * 12) + mesos;
-
-    if (totalMesos < 0) {
-        edatInfantInput.value = '';
-        edatPrecisaInfant     = { totalMesosComplets: null, diesTranscorregutsEnMesActual: null, diesEnElMesActualDeEdat: null };
-        actualitzarVisualitzacio();
-        return;
-    }
-
-    // Dies del mes de referencia per calcular la fraccio
-    const mesRef      = new Date(dataNaix.getFullYear(), dataNaix.getMonth() + totalMesos, 1);
-    const diesDelMes  = new Date(mesRef.getFullYear(), mesRef.getMonth() + 1, 0).getDate();
-
-    edatPrecisaInfant = {
-        totalMesosComplets:            totalMesos,
-        diesTranscorregutsEnMesActual: dies,
-        diesEnElMesActualDeEdat:       diesDelMes
-    };
-
-    edatInfantInput.value = totalMesos;
-    actualitzarVisualitzacio();
-}
-
-// ---------------------------------------------------------------------------
-// Reset complet de la valoracio
-// ---------------------------------------------------------------------------
-function realitzarReset() {
-    document.getElementById('nomInfant').value      = '';
-    document.getElementById('dataNaixement').value  = '';
-    document.getElementById('edatInfant').value     = '';
-    const obsEl = document.getElementById('observacions');
-    if (obsEl) {
-        obsEl.value = '';
-        document.getElementById('comptadorObs').textContent = '0';
-        document.getElementById('comptadorObsWrapper').classList.remove('comptador--limit');
-    }
-
-    edatPrecisaInfant = { totalMesosComplets: null, diesTranscorregutsEnMesActual: null, diesEnElMesActualDeEdat: null };
-
-    // Desmarcar totes les fites i netejar estats visuals
-    dadesDesenvolupament.categories.forEach(cat => {
-        cat.fites.forEach(fita => {
-            const cb = document.getElementById(`check-${generarIdSegur(fita.nomFita)}`);
-            if (!cb) return;
-            cb.checked = false;
-            const row = document.getElementById(`fita-row-${generarIdSegur(fita.nomFita)}`);
-            if (row) {
-                row.classList.remove('fita-seleccionada', 'fita-atencio', 'fita-preocupant', 'fita-critica');
-                const nc = row.querySelector('.fita-name-container');
-                if (nc) nc.classList.remove('fita-name--atencio', 'fita-name--preocupant', 'fita-name--critica');
-            }
-        });
-    });
-
-    // Desmarcar tots els signes
-    dadesDesenvolupament.signesAlerta.forEach(signe => {
-        const cb = document.getElementById(`check-signe-${generarIdSegur(signe.nomSigne)}`);
-        if (cb) cb.checked = false;
-    });
-
-    // Restablir toggle de signes
-    const signesContainer = document.getElementById('signesAlertaContainer');
-    signesContainer.dataset.mostrantTots = 'false';
-    const toggleBtn = document.getElementById('toggleSignesBtn');
-    toggleBtn.textContent = 'Mostrar tots els signes';
-    toggleBtn.setAttribute('aria-pressed', 'false');
-
-    // Restablir toggle de vista llista
-    const toggleVistaBtn = document.getElementById('toggleVistaBtn');
-    if (toggleVistaBtn && document.body.classList.contains('vista-llista')) {
-        document.body.classList.remove('vista-llista');
-        toggleVistaBtn.setAttribute('aria-pressed', 'false');
-        toggleVistaBtn.textContent = 'Vista llista';
-    }
-
-    requestAnimationFrame(actualitzarVisualitzacio);
-}
-
-// ---------------------------------------------------------------------------
-// Inicialitzacio i event listeners
-// ---------------------------------------------------------------------------
 let resizeTimer;
 let resetPendent = false;
 let resetTimer;
 
-document.addEventListener('DOMContentLoaded', () => {
-    // Limitar edat maxima al grafic
-    document.getElementById('edatInfant').max = MAX_MESOS_GRAFIC;
+function formatNombre(valor, decimals = 1) {
+    return new Intl.NumberFormat('ca-ES', { maximumFractionDigits: decimals }).format(valor);
+}
 
-    // Construir taula i grafic
-    initTaula();
+function dataLocalIso(data) {
+    const any = data.getFullYear();
+    const mes = String(data.getMonth() + 1).padStart(2, '0');
+    const dia = String(data.getDate()).padStart(2, '0');
+    return `${any}-${mes}-${dia}`;
+}
 
-    // Doble rAF per garantir que el DOM esta completament pintat
-    requestAnimationFrame(() => requestAnimationFrame(actualitzarVisualitzacio));
+function mostrarErrorCamp(id, missatge = '') {
+    const element = document.getElementById(id);
+    if (!element) return;
+    element.textContent = missatge;
+    element.hidden = !missatge;
+}
 
-    // Toggle vista llista / grafic (mobil)
-    const toggleVistaBtn = document.getElementById('toggleVistaBtn');
-    if (toggleVistaBtn) {
-        toggleVistaBtn.addEventListener('click', function () {
-            const enLlista = document.body.classList.toggle('vista-llista');
-            this.setAttribute('aria-pressed', enLlista);
-            this.textContent = enLlista ? 'Vista grafic' : 'Vista llista';
-        });
-    }
+function restablirEstatEdat() {
+    estatEdatInfant = {
+        origen: null,
+        edatCronologicaMesos: null,
+        edatAvaluacioMesos: null,
+        mesosComplets: null,
+        diesTranscorreguts: null,
+        correccioMesos: 0,
+        aplicaCorreccio: false
+    };
+}
 
-    // Boton PDF
-    document.getElementById('desarPdfBtn').addEventListener('click', generarResumPDF);
-
-    // Toggle: mostrar/amagar signes d'alerta no rellevants per l'edat
-    document.getElementById('toggleSignesBtn').addEventListener('click', function () {
-        const container    = document.getElementById('signesAlertaContainer');
-        const mostrantTots = container.dataset.mostrantTots === 'true';
-        const nouEstat     = !mostrantTots;
-
-        container.dataset.mostrantTots = nouEstat;
-        this.textContent   = nouEstat ? 'Amagar no rellevants' : 'Mostrar tots els signes';
-        this.setAttribute('aria-pressed', nouEstat);
-
-        // Si ara mostrem tots, afegir classe per restaurar interaccio visual
-        document.querySelectorAll('.signe-no-rellevant').forEach(el => {
-            el.classList.toggle('signe-forcat-visible', nouEstat);
-        });
-
+function actualitzarEdatAvaluacio(edatCronologicaMesos, dadesCalendari = null, origen = null) {
+    if (!Number.isFinite(edatCronologicaMesos)) {
+        restablirEstatEdat();
+        document.getElementById('edatAvaluacioInfo').textContent = '';
         requestAnimationFrame(actualitzarVisualitzacio);
-    });
-
-    // Acordio d'instruccions
-    const instrToggle   = document.getElementById('instruccionsToggle');
-    const instrContingut = document.getElementById('instruccionsContingut');
-    const estatGuardat  = sessionStorage.getItem('instruccionsObert');
-    // Per defecte obert (null = primera visita), tancat si l'usuari el va tancar
-    if (estatGuardat === 'false') {
-        instrToggle.setAttribute('aria-expanded', 'false');
-        instrContingut.hidden = true;
-    }
-    instrToggle.addEventListener('click', function () {
-        const estaObert = this.getAttribute('aria-expanded') === 'true';
-        const nouEstat  = !estaObert;
-        this.setAttribute('aria-expanded', nouEstat);
-        instrContingut.hidden = !nouEstat;
-        sessionStorage.setItem('instruccionsObert', nouEstat);
-    });
-
-    // Comptador d'observacions
-    const obsEl = document.getElementById('observacions');
-    if (obsEl) {
-        obsEl.addEventListener('input', function () {
-            const len     = this.value.length;
-            const counter = document.getElementById('comptadorObs');
-            const wrapper = document.getElementById('comptadorObsWrapper');
-            counter.textContent = len;
-            wrapper.classList.toggle('comptador--limit', len >= 450);
-        });
+        return;
     }
 
-    // Boton Nova valoracio (confirmacio en dos clics)
-    document.getElementById('novaValoracioBtn').addEventListener('click', function () {
-        if (!resetPendent) {
-            resetPendent      = true;
-            this.textContent  = 'Segur? (cliqueu de nou per confirmar)';
-            this.classList.add('nova-valoracio-btn--confirmar');
-            resetTimer = setTimeout(() => {
-                resetPendent     = false;
-                this.textContent = 'Nova valoracio';
-                this.classList.remove('nova-valoracio-btn--confirmar');
-            }, 3000);
-        } else {
-            clearTimeout(resetTimer);
-            resetPendent     = false;
-            this.textContent = 'Nova valoracio';
-            this.classList.remove('nova-valoracio-btn--confirmar');
-            realitzarReset();
-        }
-    });
+    const esPrematur = document.getElementById('infantPrematur').checked;
+    const valorSetmanes = document.getElementById('setmanesGestacio').value;
+    const setmanes = valorSetmanes === '' ? Number.NaN : Number(valorSetmanes);
+    const resultat = calcularEdatAvaluacio(edatCronologicaMesos, esPrematur, setmanes);
 
-    // Data de naixement
-    document.getElementById('dataNaixement').addEventListener('change', calcularMesosDesdeData);
+    estatEdatInfant = {
+        origen,
+        edatCronologicaMesos: resultat.edatCronologicaMesos,
+        edatAvaluacioMesos: resultat.edatAvaluacioMesos,
+        mesosComplets: dadesCalendari?.mesosComplets ?? Math.floor(edatCronologicaMesos),
+        diesTranscorreguts: dadesCalendari?.diesTranscorreguts ?? null,
+        correccioMesos: resultat.correccioMesos,
+        aplicaCorreccio: resultat.aplicaCorreccio
+    };
 
-    // Edat manual en mesos
-    document.getElementById('edatInfant').addEventListener('change', () => {
-        const input  = document.getElementById('edatInfant');
-        const valor  = input.value;
+    const info = document.getElementById('edatAvaluacioInfo');
+    let text = `Edat cronològica: ${formatNombre(resultat.edatCronologicaMesos)} mesos.`;
+    if (resultat.aplicaCorreccio) {
+        text += ` Edat corregida utilitzada al gràfic: ${formatNombre(resultat.edatAvaluacioMesos)} mesos.`;
+    } else if (esPrematur && Number.isFinite(setmanes) && edatCronologicaMesos >= LIMIT_EDAT_CORREGIDA_MESOS) {
+        text += ` No s’aplica correcció perquè l’edat és igual o superior a ${LIMIT_EDAT_CORREGIDA_MESOS} mesos.`;
+    } else if (esPrematur && !Number.isFinite(setmanes)) {
+        text += ' Indiqueu les setmanes de gestació per calcular l’edat corregida.';
+    }
+    info.textContent = text;
+    requestAnimationFrame(actualitzarVisualitzacio);
+}
 
-        if (valor === '') {
-            edatPrecisaInfant = { totalMesosComplets: null, diesTranscorregutsEnMesActual: null, diesEnElMesActualDeEdat: null };
-            requestAnimationFrame(actualitzarVisualitzacio);
+function recalcularEdat() {
+    const dataInput = document.getElementById('dataNaixement');
+    const edatInput = document.getElementById('edatInfant');
+    mostrarErrorCamp('errorDataNaixement');
+    mostrarErrorCamp('errorEdatInfant');
+    mostrarErrorCamp('errorSetmanesGestacio');
+
+    const prematur = document.getElementById('infantPrematur').checked;
+    const valorSetmanes = document.getElementById('setmanesGestacio').value;
+    const setmanes = valorSetmanes === '' ? Number.NaN : Number(valorSetmanes);
+    if (prematur && valorSetmanes !== '' && (!Number.isInteger(setmanes) || setmanes < 22 || setmanes > 36)) {
+        mostrarErrorCamp('errorSetmanesGestacio', 'Introduïu un nombre enter entre 22 i 36 setmanes.');
+    }
+
+    if (dataInput.value) {
+        const resultat = calcularEdatCronologica(dataInput.value);
+        if (!resultat) {
+            mostrarErrorCamp('errorDataNaixement', 'Introduïu una data vàlida que no sigui futura.');
+            actualitzarEdatAvaluacio(null);
             return;
         }
-
-        const parsed = parseFloat(valor);
-        if (!isNaN(parsed) && parsed >= 0 && parsed <= MAX_MESOS_GRAFIC) {
-            const mesosComplets = Math.floor(parsed);
-            input.value         = mesosComplets;
-
-            let diesDelMes = 30.4375;
-            const dnInput  = document.getElementById('dataNaixement');
-            if (dnInput.value) {
-                const dn     = new Date(dnInput.value);
-                const mesRef = new Date(dn.getFullYear(), dn.getMonth() + mesosComplets, 1);
-                diesDelMes   = new Date(mesRef.getFullYear(), mesRef.getMonth() + 1, 0).getDate();
-            }
-
-            edatPrecisaInfant = {
-                totalMesosComplets:            mesosComplets,
-                diesTranscorregutsEnMesActual: 0,
-                diesEnElMesActualDeEdat:       diesDelMes
-            };
-        } else {
-            input.value   = '';
-            edatPrecisaInfant = { totalMesosComplets: null, diesTranscorregutsEnMesActual: null, diesEnElMesActualDeEdat: null };
+        if (resultat.mesosDecimals > MAX_MESOS_GRAFIC) {
+            mostrarErrorCamp('errorDataNaixement', `Aquesta selecció de fites arriba fins als ${MAX_MESOS_GRAFIC} mesos.`);
+            actualitzarEdatAvaluacio(null);
+            return;
         }
+        edatInput.value = '';
+        actualitzarEdatAvaluacio(resultat.mesosDecimals, resultat, 'data');
+        return;
+    }
 
+    if (edatInput.value === '') {
+        actualitzarEdatAvaluacio(null);
+        return;
+    }
+
+    const edat = Number(edatInput.value);
+    if (!Number.isFinite(edat) || edat < 0 || edat > MAX_MESOS_GRAFIC) {
+        mostrarErrorCamp('errorEdatInfant', `Introduïu una edat entre 0 i ${MAX_MESOS_GRAFIC} mesos.`);
+        actualitzarEdatAvaluacio(null);
+        return;
+    }
+    actualitzarEdatAvaluacio(edat, null, 'manual');
+}
+
+function teValoracioEnCurs() {
+    if (document.getElementById('identificadorInfant')?.value) return true;
+    if (document.getElementById('observacions')?.value || document.getElementById('preocupacionsFamilia')?.value) return true;
+    if (document.querySelector('.fita-estat-select option:checked:not([value=""])')) return true;
+    if (document.querySelector('.signe-estat-select option:checked:not([value=""])')) return true;
+    return false;
+}
+
+function actualitzarBotoVista() {
+    const boto = document.getElementById('toggleVistaBtn');
+    if (!boto) return;
+    const esMobil = window.matchMedia('(max-width: 640px)').matches;
+    const classeActiva = document.body.classList.contains('vista-llista');
+    const mostraLlista = esMobil ? !classeActiva : classeActiva;
+    boto.setAttribute('aria-pressed', String(mostraLlista));
+    boto.textContent = mostraLlista ? 'Mostra el gràfic' : 'Mostra la vista de llista';
+}
+
+function realitzarReset() {
+    ['identificadorInfant', 'dataNaixement', 'edatInfant', 'setmanesGestacio', 'preocupacionsFamilia', 'observacions']
+        .forEach(id => { const element = document.getElementById(id); if (element) element.value = ''; });
+    document.getElementById('infantPrematur').checked = false;
+    document.getElementById('setmanesGestacioWrapper').hidden = true;
+    document.querySelectorAll('.fita-estat-select, .signe-estat-select').forEach(select => { select.value = ''; });
+    document.getElementById('comptadorObs').textContent = '0';
+    document.getElementById('comptadorObsWrapper').classList.remove('comptador--limit');
+    ['errorDataNaixement', 'errorEdatInfant', 'errorSetmanesGestacio'].forEach(id => mostrarErrorCamp(id));
+    restablirEstatEdat();
+
+    const signesContainer = document.getElementById('signesAlertaContainer');
+    signesContainer.dataset.mostrantTots = 'false';
+    const toggleSignes = document.getElementById('toggleSignesBtn');
+    toggleSignes.textContent = 'Mostra tots els signes';
+    toggleSignes.setAttribute('aria-pressed', 'false');
+
+    document.body.classList.remove('vista-llista');
+    actualitzarBotoVista();
+    document.getElementById('edatAvaluacioInfo').textContent = '';
+    requestAnimationFrame(actualitzarVisualitzacio);
+    document.getElementById('identificadorInfant').focus();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const dataNaixement = document.getElementById('dataNaixement');
+    const edatInfant = document.getElementById('edatInfant');
+    dataNaixement.max = dataLocalIso(new Date());
+    edatInfant.max = MAX_MESOS_GRAFIC;
+    document.getElementById('versioDades').textContent = METADADES_INSTRUMENT.versioDades;
+
+    initTaula();
+    actualitzarBotoVista();
+    requestAnimationFrame(() => requestAnimationFrame(actualitzarVisualitzacio));
+
+    document.getElementById('toggleVistaBtn').addEventListener('click', function () {
+        document.body.classList.toggle('vista-llista');
+        actualitzarBotoVista();
+    });
+
+    document.getElementById('desarPdfBtn').addEventListener('click', generarResumPDF);
+
+    document.getElementById('toggleSignesBtn').addEventListener('click', function () {
+        const container = document.getElementById('signesAlertaContainer');
+        const nouEstat = container.dataset.mostrantTots !== 'true';
+        container.dataset.mostrantTots = String(nouEstat);
+        this.textContent = nouEstat ? 'Mostra només els rellevants per edat' : 'Mostra tots els signes';
+        this.setAttribute('aria-pressed', String(nouEstat));
         requestAnimationFrame(actualitzarVisualitzacio);
     });
 
-    // Resize amb debounce (evita recalculs cada pixel)
+    const instruccionsToggle = document.getElementById('instruccionsToggle');
+    const instruccionsContingut = document.getElementById('instruccionsContingut');
+    if (sessionStorage.getItem('instruccionsObert') === 'false') {
+        instruccionsToggle.setAttribute('aria-expanded', 'false');
+        instruccionsContingut.hidden = true;
+    }
+    instruccionsToggle.addEventListener('click', function () {
+        const nouEstat = this.getAttribute('aria-expanded') !== 'true';
+        this.setAttribute('aria-expanded', String(nouEstat));
+        instruccionsContingut.hidden = !nouEstat;
+        sessionStorage.setItem('instruccionsObert', String(nouEstat));
+    });
+
+    const observacions = document.getElementById('observacions');
+    observacions.addEventListener('input', function () {
+        document.getElementById('comptadorObs').textContent = this.value.length;
+        document.getElementById('comptadorObsWrapper').classList.toggle('comptador--limit', this.value.length >= 450);
+    });
+    document.getElementById('preocupacionsFamilia').addEventListener('input', actualitzarResum);
+
+    document.getElementById('novaValoracioBtn').addEventListener('click', function () {
+        if (!resetPendent && teValoracioEnCurs()) {
+            resetPendent = true;
+            this.textContent = 'Confirmeu que voleu esborrar-la';
+            this.classList.add('nova-valoracio-btn--confirmar');
+            resetTimer = setTimeout(() => {
+                resetPendent = false;
+                this.textContent = 'Esborra la valoració';
+                this.classList.remove('nova-valoracio-btn--confirmar');
+            }, 4000);
+            return;
+        }
+        clearTimeout(resetTimer);
+        resetPendent = false;
+        this.textContent = 'Esborra la valoració';
+        this.classList.remove('nova-valoracio-btn--confirmar');
+        realitzarReset();
+    });
+
+    dataNaixement.addEventListener('change', recalcularEdat);
+    edatInfant.addEventListener('input', () => {
+        if (edatInfant.value !== '') {
+            dataNaixement.value = '';
+            mostrarErrorCamp('errorDataNaixement');
+        }
+        recalcularEdat();
+    });
+
+    const infantPrematur = document.getElementById('infantPrematur');
+    infantPrematur.addEventListener('change', () => {
+        document.getElementById('setmanesGestacioWrapper').hidden = !infantPrematur.checked;
+        if (!infantPrematur.checked) document.getElementById('setmanesGestacio').value = '';
+        recalcularEdat();
+    });
+    document.getElementById('setmanesGestacio').addEventListener('input', function () {
+        recalcularEdat();
+    });
+
     window.addEventListener('resize', () => {
         clearTimeout(resizeTimer);
         resizeTimer = setTimeout(() => {
             updateLeftColumnWidth();
-            const offset = getCurrentTimelineStartOffset();
-            document.getElementById('verticalGuideLinesContainer').style.left = `${offset}px`;
+            actualitzarBotoVista();
             requestAnimationFrame(actualitzarVisualitzacio);
         }, 100);
+    });
+
+    window.addEventListener('beforeunload', event => {
+        if (!teValoracioEnCurs()) return;
+        event.preventDefault();
+        event.returnValue = '';
     });
 });

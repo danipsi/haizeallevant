@@ -1,11 +1,11 @@
 {
-  "name": "Seguiment del Desenvolupament Psicomotor Infantil",
-  "short_name": "Seguiment Inf.",
-  "description": "Eina per al seguiment del desenvolupament psicomotor infantil. Processament 100% local.",
+  "name": "Seguiment del desenvolupament infantil",
+  "short_name": "Desenvolupament",
+  "description": "Suport local a la vigilància professional del desenvolupament infantil de 0 a 30 mesos.",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#f0f4f8",
-  "theme_color": "#4f46e5",
+  "theme_color": "#f0f4f8",
   "lang": "ca",
   "icons": [
     {

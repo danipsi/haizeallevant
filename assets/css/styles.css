@@ -1,1144 +1,388 @@
-/* ==========================================================================
-   Seguiment del desenvolupament psicomotor infantil — Fulls d'estil
-   Sense dependències externes. Font: pila de sistema (sense Google Fonts).
-   ========================================================================== */
-
-/* --------------------------------------------------------------------------
-   Variables globals
-   -------------------------------------------------------------------------- */
 :root {
-    --left-column-width: 200px;
-    --month-col-width:    35px;
-
-    --color-primary:      #4f46e5;
-    --color-primary-dark: #4338ca;
-    --color-bg:           #f0f4f8;
-    --color-surface:      #ffffff;
-    --color-border:       #e2e8f0;
-    --color-border-input: #d1d5db;
-    --color-text:         #2d3748;
-    --color-text-muted:   #718096;
-    --color-text-subtle:  #4a5568;
-
-    --radius-sm:  0.375rem;
-    --radius-md:  0.5rem;
-    --radius-lg:  0.75rem;
-
-    --shadow-sm:  0 1px 2px rgba(0,0,0,.05);
-    --shadow-md:  0 4px 12px rgba(0,0,0,.08);
-    --shadow-lg:  0 10px 25px rgba(0,0,0,.1);
+    color-scheme: light;
+    --left-column-width: 280px;
+    --month-col-width: 35px;
+    --color-primary: #4338ca;
+    --color-primary-hover: #3730a3;
+    --color-bg: #f4f7fb;
+    --color-surface: #ffffff;
+    --color-surface-muted: #f8fafc;
+    --color-border: #d7dee8;
+    --color-text: #1f2937;
+    --color-text-muted: #5c6878;
+    --color-danger: #b42318;
+    --color-danger-bg: #fff1f0;
+    --color-warning: #9a6700;
+    --color-warning-bg: #fff8c5;
+    --color-success: #067647;
+    --color-success-bg: #ecfdf3;
+    --radius-sm: .4rem;
+    --radius-md: .65rem;
+    --radius-lg: 1rem;
+    --shadow-sm: 0 1px 3px rgba(15, 23, 42, .08);
+    --shadow-md: 0 10px 28px rgba(15, 23, 42, .09);
 }
 
-/* --------------------------------------------------------------------------
-   Reset i base
-   -------------------------------------------------------------------------- */
 *, *::before, *::after { box-sizing: border-box; }
 
+html { scroll-behavior: smooth; }
+
 body {
-    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
-                 "Segoe UI", "Helvetica Neue", Arial, Noto Sans, sans-serif;
-    background-color: var(--color-bg);
-    color: var(--color-text);
     margin: 0;
-    line-height: 1.5;
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    line-height: 1.55;
+    -webkit-tap-highlight-color: rgba(67, 56, 202, .15);
 }
 
-/* --------------------------------------------------------------------------
-   Utilities (equivalent Tailwind — nomes les classes usades al HTML)
-   -------------------------------------------------------------------------- */
+button, select, input, textarea { font: inherit; touch-action: manipulation; }
+button, select { min-height: 40px; }
+a { color: var(--color-primary); text-underline-offset: .18em; }
+a:hover { color: var(--color-primary-hover); }
+h1, h2, h3 { text-wrap: balance; scroll-margin-top: 1rem; }
+p { text-wrap: pretty; }
 
-/* Spacing */
-.p-2  { padding: .5rem; }
-.p-4  { padding: 1rem; }
-.py-3 { padding-top: .75rem;  padding-bottom: .75rem; }
-.px-6 { padding-left: 1.5rem; padding-right: 1.5rem; }
+.skip-link {
+    position: fixed;
+    top: .5rem;
+    left: .5rem;
+    z-index: 20000;
+    padding: .65rem 1rem;
+    border-radius: var(--radius-sm);
+    background: var(--color-primary);
+    color: #fff;
+    transform: translateY(-160%);
+}
+.skip-link:focus { transform: translateY(0); }
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.container { width: 100%; margin-inline: auto; }
+.max-w-7xl { max-width: 80rem; }
+.p-2 { padding: .5rem; }
+.p-4, body.p-4 { padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) max(1rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left)); }
 .mb-1 { margin-bottom: .25rem; }
-.mb-2 { margin-bottom: .5rem; }
-.mb-3 { margin-bottom: .75rem; }
 .mb-4 { margin-bottom: 1rem; }
 .mb-6 { margin-bottom: 1.5rem; }
-.mb-12{ margin-bottom: 3rem; }
-.ml-4 { margin-left: 1rem; }
+.mb-12 { margin-bottom: 3rem; }
 .mt-2 { margin-top: .5rem; }
 .mt-3 { margin-top: .75rem; }
 .mt-8 { margin-top: 2rem; }
-
-/* Layout */
-.container { width: 100%; margin-right: auto; margin-left: auto; }
-.mx-auto   { margin-left: auto; margin-right: auto; }
-.max-w-7xl { max-width: 80rem; }
-.block     { display: block; }
-.w-full    { width: 100%; }
-.hidden    { display: none !important; }
+.block { display: block; }
+.w-full { width: 100%; }
+.hidden { display: none !important; }
 .text-center { text-align: center; }
+.text-sm { font-size: .875rem; }
+.text-md { font-size: 1rem; }
+.text-xl { font-size: 1.25rem; }
+.text-2xl { font-size: 1.5rem; }
+.font-medium { font-weight: 500; }
+.font-semibold { font-weight: 600; }
+.font-bold { font-weight: 700; }
+.text-gray-600 { color: var(--color-text-muted); }
+.text-gray-700, .text-gray-800 { color: var(--color-text); }
+.bg-white { background: var(--color-surface); }
+.border { border: 1px solid var(--color-border); }
+.border-gray-300 { border-color: var(--color-border); }
+.rounded-md { border-radius: var(--radius-sm); }
+.shadow-sm, .shadow { box-shadow: var(--shadow-sm); }
+.grid { display: grid; }
+.grid-cols-1 { grid-template-columns: minmax(0, 1fr); }
+.gap-3 { gap: .75rem; }
+.gap-4 { gap: 1rem; }
 
-/* Tipografia */
-.text-sm      { font-size: .875rem;  line-height: 1.25rem; }
-.text-md      { font-size: 1rem;     line-height: 1.5rem; }
-.text-lg      { font-size: 1.125rem; line-height: 1.75rem; }
-.text-xl      { font-size: 1.25rem;  line-height: 1.75rem; }
-.text-2xl     { font-size: 1.5rem;   line-height: 2rem; }
-.font-medium  { font-weight: 500; }
-.font-semibold{ font-weight: 600; }
-.font-bold    { font-weight: 700; }
-
-.text-gray-600 { color: #718096; }
-.text-gray-700 { color: #4a5568; }
-.text-gray-800 { color: #2d3748; }
-.text-white    { color: #ffffff; }
-
-/* Fons i vores */
-.bg-white       { background-color: #ffffff; }
-.bg-indigo-600  { background-color: var(--color-primary); }
-.border         { border: 1px solid var(--color-border-input); }
-.border-gray-300{ border-color: #d1d5db; }
-.rounded-md     { border-radius: var(--radius-sm); }
-.rounded-lg     { border-radius: var(--radius-md); }
-
-/* Ombres */
-.shadow-sm { box-shadow: var(--shadow-sm); }
-.shadow    { box-shadow: 0 1px 3px rgba(0,0,0,.1), 0 1px 2px rgba(0,0,0,.06); }
-.shadow-md { box-shadow: 0 4px 6px rgba(0,0,0,.07), 0 2px 4px rgba(0,0,0,.06); }
-
-/* Llistes */
-.list-disc   { list-style-type: disc; }
-.list-inside { list-style-position: inside; }
-
-/* Grid */
-.grid          { display: grid; }
-.grid-cols-1   { grid-template-columns: repeat(1, minmax(0, 1fr)); }
-.gap-3         { gap: .75rem; }
-.gap-4         { gap: 1rem; }
-
-/* Transicio */
-.transition    { transition: color .15s ease, background-color .15s ease,
-                             border-color .15s ease, box-shadow .15s ease,
-                             transform .15s ease; }
-
-/* Hover */
-.hover\:bg-indigo-700:hover  { background-color: var(--color-primary-dark); }
-.hover\:shadow-lg:hover      { box-shadow: 0 10px 15px rgba(0,0,0,.1),
-                                           0 4px 6px rgba(0,0,0,.05); }
-
-/* Focus inputs */
-input:focus,
-input:focus-visible {
-    outline: none;
-    border-color: var(--color-primary);
-    box-shadow: 0 0 0 3px rgba(79, 70, 229, .2);
-}
-
-/* Padding de pagina */
-body.p-4  { padding: 1rem; }
-
-@media (min-width: 768px) {
-    body.p-4   { padding: 1.5rem; }
-    .md\:text-3xl    { font-size: 1.875rem; line-height: 2.25rem; }
-    .md\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-}
-
-@media (min-width: 640px) {
-    .sm\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
-
-/* --------------------------------------------------------------------------
-   Components de la pagina
-   -------------------------------------------------------------------------- */
-.input-container,
-.info-container,
-.legal-container {
-    background-color: var(--color-surface);
-    padding: 1.5rem;
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-lg);
-    margin-bottom: 1.5rem;
-}
-
-.info-container p,
-.legal-container p {
-    margin-bottom: .5rem;
-    line-height: 1.6;
-    color: var(--color-text-subtle);
-}
-
-.info-container strong,
-.legal-container strong {
-    color: var(--color-text);
-}
-
-.legal-container {
-    font-size: .875rem;
-    border-left: 4px solid var(--color-primary);
-}
-
-/* --------------------------------------------------------------------------
-   Grafic de fites (timeline)
-   -------------------------------------------------------------------------- */
-.fites-chart-container {
-    position: relative;
-    background-color: var(--color-surface);
-    border-radius: var(--radius-sm);
-    box-shadow: 0 4px 12px rgba(0,0,0,.05);
-    overflow-x: auto;
-    overflow-y: auto;
-    max-height: 70vh;
-}
-
-.timeline-header {
-    display: flex;
-    position: sticky;
-    top: 0;
-    background-color: var(--color-surface);
-    z-index: 990;
-    border-bottom: 1px solid var(--color-border);
-    min-width: fit-content;
-}
-
-.timeline-header-space {
-    width: var(--left-column-width);
-    min-width: var(--left-column-width);
-    flex-shrink: 0;
-    border-right: 1px solid var(--color-border);
-    box-sizing: border-box;
-    background-color: var(--color-surface);
-    position: sticky;
-    left: 0;
-    z-index: 990;
-}
-
-.timeline-month {
-    width: var(--month-col-width, 35px);
-    min-width: var(--month-col-width, 35px);
-    text-align: center;
-    font-size: .75rem;
-    color: var(--color-text-muted);
-    padding: 8px 0;
-    border-left: 1px solid var(--color-border);
-    box-sizing: border-box;
-}
-
-#categoriesContainer {
-    padding-left: 0;
-    min-width: fit-content;
-    padding-top: 10px;
-    position: relative;
-}
-
-.category-row {
-    margin-bottom: 15px;
-    padding-bottom: 10px;
-    border-bottom: 1px dashed #cbd5e0;
-}
-.category-row:last-child {
-    border-bottom: none;
-    margin-bottom: 0;
-}
-
-.category-row-title {
-    font-weight: 600;
-    color: var(--color-text);
-    font-size: 1.1rem;
-    line-height: 1.4;
-    margin-bottom: .25rem;
-    position: sticky;
-    left: 0;
-    width: var(--left-column-width);
-    min-width: var(--left-column-width);
-    padding: 0 10px;
-    background-color: var(--color-surface);
-    z-index: 980;
-    border-right: 1px solid var(--color-border);
-    box-sizing: border-box;
-    overflow-wrap: break-word;
-}
-
-.category-instruction-text {
-    font-size: .9rem;
-    color: var(--color-text-subtle);
-    margin-bottom: 10px;
-    font-style: italic;
-    position: sticky;
-    left: 0;
-    width: var(--left-column-width);
-    min-width: var(--left-column-width);
-    padding: 0 10px;
-    background-color: var(--color-surface);
-    z-index: 980;
-    border-right: 1px solid var(--color-border);
-    box-sizing: border-box;
-}
-
-.no-break-text { white-space: nowrap; }
-
-.fita-row {
-    display: flex;
-    align-items: center;
-    margin-bottom: 8px;
-    min-height: 30px;
-    transition: background-color .2s ease;
-}
-
-.fita-seleccionada { background-color: #eef2ff; }
-
-.fita-name-container {
-    width: var(--left-column-width);
-    min-width: var(--left-column-width);
-    padding: 0 10px;
-    font-size: .8rem;
-    color: var(--color-text-subtle);
-    display: flex;
-    align-items: center;
-    flex-shrink: 0;
-    cursor: default;
-    box-sizing: border-box;
-    position: sticky;
-    left: 0;
-    background-color: var(--color-surface);
-    z-index: 980;
-    border-right: 1px solid var(--color-border);
-}
-
-.fita-name-container input[type="checkbox"] {
-    margin-right: 6px;
-    cursor: pointer;
-    width: 16px;
-    height: 16px;
-    flex-shrink: 0;
-    /* Elimina el focus default per aplicar el custom */
-    accent-color: var(--color-primary);
-}
-
-.fita-bars-outer-container {
-    position: relative;
-    height: 20px;
-    flex-grow: 1;
-}
-
-.fita-bars-container {
-    position: relative;
-    height: 100%;
-}
-
-.fita-bar {
-    position: absolute;
-    height: 100%;
-    display: flex;
-    border-radius: 4px;
-    overflow: hidden;
-    cursor: default;
-}
-
-.fita-bar-segment1 { background-color: #7DD3FC; height: 100%; }
-.fita-bar-segment2 { background-color: #0EA5E9; height: 100%; }
-
-.fita-bar:hover .fita-bar-segment1 { background-color: #38BDF8; }
-.fita-bar:hover .fita-bar-segment2 { background-color: #0284C7; }
-
-/* Llegenda del grafic */
-.grafic-llegenda {
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-    font-size: .78rem;
-    color: var(--color-text-muted);
-    padding: .5rem 1rem .25rem;
-    flex-wrap: wrap;
-}
-.grafic-llegenda-item {
-    display: flex;
-    align-items: center;
-    gap: .4rem;
-}
-.grafic-llegenda-swatch {
-    display: inline-block;
-    width: 28px;
-    height: 10px;
-    border-radius: 3px;
-}
-.grafic-llegenda-swatch--p50  { background-color: #7DD3FC; }
-.grafic-llegenda-swatch--p75  { background-color: #0EA5E9; }
-.grafic-llegenda-swatch--edat {
-    width: 3px;
-    height: 14px;
-    border-radius: 2px;
-    background-color: #f56565;
-}
-
-/* Linia d'edat */
-.age-line {
-    position: absolute;
-    width: 2px;
-    background-color: #f56565;
-    z-index: 995;
-    display: none;
-}
-
-/* Guies verticals */
-.vertical-guide-line {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    width: 1px;
-    background-color: var(--color-border);
-    z-index: 1;
-}
-
-#verticalGuideLinesContainer {
-    position: absolute;
-    pointer-events: none;
-    z-index: 0;
-}
-
-/* --------------------------------------------------------------------------
-   Signes d'alerta
-   -------------------------------------------------------------------------- */
-.signe-alerta-item-container {
-    display: flex;
-    align-items: center;
-    padding: 10px;
-    margin-bottom: 8px;
-    border-radius: var(--radius-sm);
-    transition: background-color .3s ease, transform .2s ease;
+input, textarea, select {
     border: 1px solid var(--color-border);
-    cursor: default;
-}
-
-.signe-alerta-item-container:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
-}
-
-.signe-alerta-item-container input[type="checkbox"] {
-    margin-right: 10px;
-    width: 16px;
-    height: 16px;
-    cursor: pointer;
-    flex-shrink: 0;
-    accent-color: #e53e3e;
-}
-
-.alerta-activa {
-    background-color: #fecaca;
-    color: #c53030;
-    border-color: #f56565;
-    font-weight: 600;
-}
-
-.no-esperada-alerta {
-    background-color: #e2e8f0;
-    color: var(--color-text-subtle);
-    border-color: #cbd5e0;
-}
-
-/* --------------------------------------------------------------------------
-   Tooltip
-   -------------------------------------------------------------------------- */
-.tooltip {
-    position: absolute;
-    background-color: #333;
-    color: #fff;
-    padding: 8px 12px;
-    border-radius: 6px;
-    font-size: .875rem;
-    z-index: 10000;
-    pointer-events: none;
-    box-shadow: 0 2px 8px rgba(0,0,0,.15);
-    max-width: 260px;
-    white-space: normal;
-    line-height: 1.5;
-}
-
-/* --------------------------------------------------------------------------
-   Boton PDF
-   -------------------------------------------------------------------------- */
-#desarPdfBtn {
-    display: inline-block;
-    background-color: var(--color-primary);
-    color: #fff;
-    font-weight: 700;
-    padding: .75rem 1.5rem;
-    border: none;
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-md);
-    cursor: pointer;
-    transition: background-color .15s ease, box-shadow .15s ease;
-    font-size: 1rem;
-}
-
-#desarPdfBtn:hover:not(:disabled) {
-    background-color: var(--color-primary-dark);
-    box-shadow: 0 10px 15px rgba(0,0,0,.1);
-}
-
-#desarPdfBtn:focus-visible {
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(79, 70, 229, .4);
-}
-
-#desarPdfBtn:disabled {
-    opacity: .75;
-    cursor: wait;
-}
-
-#desarPdfBtn.pdf-btn--ok {
-    background-color: #16a34a;
-}
-
-#desarPdfBtn.pdf-btn--error {
-    background-color: #dc2626;
-}
-
-/* --------------------------------------------------------------------------
-   Responsive
-   -------------------------------------------------------------------------- */
-@media (max-width: 768px) {
-    :root {
-        --left-column-width: 150px;
-    }
-
-    .fita-name-container {
-        font-size: .72rem;
-    }
-
-    .fita-name-container input[type="checkbox"] {
-        margin-right: 4px;
-    }
-}
-
-/* ==========================================================================
-   Fase 2 — Millores clíniques
-   ========================================================================== */
-
-/* --------------------------------------------------------------------------
-   Estat clínic de les fites (aplicat a .fita-row quan el checkbox és marcat)
-   -------------------------------------------------------------------------- */
-.fita-seleccionada.fita-atencio    { background-color: #fef9c3; }
-.fita-seleccionada.fita-preocupant { background-color: #fed7aa; }
-.fita-seleccionada.fita-critica    { background-color: #fecaca; }
-
-/* La columna fixa (sticky) ha de tenir el mateix color de fons que la fila */
-.fita-name-container.fita-name--atencio {
-    background-color: #fef9c3;
-    border-left: 3px solid #ca8a04;
-}
-.fita-name-container.fita-name--preocupant {
-    background-color: #fed7aa;
-    border-left: 3px solid #ea580c;
-}
-.fita-name-container.fita-name--critica {
-    background-color: #fecaca;
-    border-left: 3px solid #dc2626;
-}
-
-/* --------------------------------------------------------------------------
-   Panell de resum dinàmic
-   -------------------------------------------------------------------------- */
-.resum-panel {
-    padding: 1rem 1.5rem;
-    border-radius: var(--radius-lg);
-    margin-bottom: 1.5rem;
-    border-left: 4px solid #cbd5e0;
-    background-color: var(--color-surface);
-    box-shadow: var(--shadow-md);
-    transition: border-color .4s ease, background-color .4s ease;
-}
-
-.resum-panel--buit {
-    background-color: #f7fafc;
-    border-left-color: #cbd5e0;
-}
-.resum-panel--ok {
-    background-color: #f0fff4;
-    border-left-color: #48bb78;
-}
-.resum-panel--atencio {
-    background-color: #fffaf0;
-    border-left-color: #f6ad55;
-}
-.resum-panel--critica {
-    background-color: #fff5f5;
-    border-left-color: #fc8181;
-}
-
-.resum-hint {
-    color: var(--color-text-muted);
-    font-size: .875rem;
-    margin: 0;
-}
-
-.resum-titol {
-    font-weight: 600;
-    font-size: .9rem;
-    color: var(--color-text-subtle);
-    margin-bottom: .75rem;
-}
-
-.resum-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1.5rem;
-    margin-bottom: .75rem;
-    align-items: flex-end;
-}
-
-.resum-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    min-width: 64px;
-}
-
-.resum-num {
-    font-size: 2rem;
-    font-weight: 700;
-    line-height: 1;
+    border-radius: var(--radius-sm);
+    background: var(--color-surface);
     color: var(--color-text);
 }
-
-.resum-label {
-    font-size: .72rem;
-    color: var(--color-text-muted);
-    text-align: center;
-    margin-top: .2rem;
+input, textarea { padding: .65rem .75rem; }
+textarea { display: block; resize: vertical; line-height: 1.5; }
+input::placeholder, textarea::placeholder { color: #7a8697; }
+input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-visible, a:focus-visible, [tabindex="0"]:focus-visible {
+    outline: 3px solid rgba(67, 56, 202, .32);
+    outline-offset: 2px;
+    border-color: var(--color-primary);
 }
 
-.resum-item--critica   .resum-num { color: #e53e3e; }
-.resum-item--preocupant .resum-num { color: #dd6b20; }
-
-.resum-recomanacio {
-    font-size: .85rem;
-    font-weight: 600;
-    padding: .4rem .75rem;
-    border-radius: var(--radius-sm);
+.info-container, .input-container, .legal-container, .font-container {
+    margin-bottom: 1.5rem;
+    padding: clamp(1rem, 3vw, 1.5rem);
+    border: 1px solid rgba(215, 222, 232, .8);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-md);
 }
-.resum-recomanacio--ok      { color: #276749; background-color: #c6f6d5; }
-.resum-recomanacio--atencio { color: #7b341e; background-color: #fbd38d; }
-.resum-recomanacio--critica { color: #742a2a; background-color: #fed7d7; }
+.legal-container { border-left: 4px solid var(--color-primary); }
+.font-container { background: #eef2ff; }
+.info-container p, .legal-container p, .font-container p { margin: .5rem 0; }
 
-/* --------------------------------------------------------------------------
-   Signes d'alerta: filtratge per rellevància d'edat
-   -------------------------------------------------------------------------- */
-.signe-no-rellevant {
-    opacity: .3;
-    font-size: .8rem;
-    transition: opacity .3s ease;
-    pointer-events: none; /* evita interacció accidental */
-}
-
-/* Quan s'obre el toggle, restaurar interaccions */
-.signe-no-rellevant.signe-forcat-visible {
-    opacity: 1;
-    font-size: inherit;
-    pointer-events: auto;
-}
-
-/* --------------------------------------------------------------------------
-   Capçalera de la secció de signes + botó toggle
-   -------------------------------------------------------------------------- */
-.signes-cap {
+.section-title { margin: 0 0 .25rem; font-size: 1.2rem; line-height: 1.35; }
+.section-subtitle { margin: 0; color: var(--color-text-muted); font-size: .875rem; }
+.section-heading-row, .signes-cap {
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     justify-content: space-between;
-    flex-wrap: wrap;
-    gap: .5rem;
+    gap: 1rem;
     margin-bottom: .75rem;
 }
 
-.signes-cap h2 { margin-bottom: 0; }
-
-.toggle-signes-btn {
-    font-size: .8rem;
-    color: var(--color-primary);
-    background: none;
-    border: 1px solid currentColor;
-    border-radius: var(--radius-sm);
-    padding: .3rem .8rem;
-    cursor: pointer;
-    transition: background-color .15s ease, color .15s ease;
-    white-space: nowrap;
-}
-
-.toggle-signes-btn:hover {
-    background-color: var(--color-primary);
-    color: #fff;
-}
-
-.toggle-signes-btn:focus-visible {
-    outline: 2px solid var(--color-primary);
-    outline-offset: 2px;
-}
-
-/* ==========================================================================
-   Fase 3 — UX
-   ========================================================================== */
-
-/* --------------------------------------------------------------------------
-   Acordió d'instruccions
-   -------------------------------------------------------------------------- */
 .instruccions-toggle {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
     width: 100%;
-    background: none;
-    border: none;
-    padding: 0;
+    align-items: center;
+    justify-content: space-between;
+    padding: .25rem 0;
+    border: 0;
+    background: transparent;
+    color: var(--color-text);
     cursor: pointer;
-    font-size: 1.125rem;
-    font-weight: 600;
-    color: var(--color-text-subtle);
+    font-size: 1.1rem;
+    font-weight: 700;
     text-align: left;
 }
+.instruccions-toggle:hover { color: var(--color-primary); }
+.instruccions-toggle-icon { font-size: .75rem; transition: transform .2s ease; }
+.instruccions-toggle[aria-expanded="true"] .instruccions-toggle-icon { transform: rotate(180deg); }
+.instruccions-contingut { margin-top: .75rem; padding-top: .75rem; border-top: 1px solid var(--color-border); }
+.llista-instruccions { margin: .75rem 0; padding-left: 1.5rem; }
+.llista-instruccions li { margin-bottom: .4rem; }
+.avis-clinic { padding: .75rem 1rem; border-radius: var(--radius-sm); background: #fff8e6; }
 
-.instruccions-toggle:hover { color: var(--color-text); }
+.field-help, .field-error, .privacy-inline { margin: .35rem 0 0; font-size: .78rem; }
+.field-help { color: var(--color-text-muted); }
+.field-error { color: var(--color-danger); font-weight: 600; }
+.privacy-inline { padding: .65rem .75rem; border-left: 3px solid var(--color-warning); background: var(--color-warning-bg); color: #633c01; }
+.comptador-observacions { margin-top: .25rem; color: var(--color-text-muted); font-size: .75rem; text-align: right; font-variant-numeric: tabular-nums; }
+.comptador--limit { color: var(--color-danger); font-weight: 700; }
 
-.instruccions-toggle:focus-visible {
-    outline: 2px solid var(--color-primary);
-    outline-offset: 2px;
-    border-radius: 3px;
+.prematuritat-fieldset {
+    margin: 0 0 1rem;
+    padding: 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
 }
+.prematuritat-fieldset legend { padding-inline: .35rem; font-weight: 700; }
+.checkbox-label { display: flex; min-height: 44px; align-items: center; gap: .65rem; cursor: pointer; }
+.checkbox-label input { width: 18px; height: 18px; accent-color: var(--color-primary); }
+.setmanes-wrapper { max-width: 20rem; margin-top: .75rem; }
+.edat-avaluacio-info { margin: .65rem 0 0; color: var(--color-primary); font-size: .85rem; font-weight: 600; }
 
-.instruccions-toggle-icon {
-    font-size: .7rem;
-    color: var(--color-text-muted);
-    transition: transform .25s ease;
-    flex-shrink: 0;
-    margin-left: .5rem;
+.resum-panel {
+    margin-bottom: 1.75rem;
+    padding: 1rem 1.25rem;
+    border: 1px solid var(--color-border);
+    border-left-width: 5px;
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-sm);
 }
+.resum-panel--buit { border-left-color: #94a3b8; }
+.resum-panel--sense-alertes { border-left-color: var(--color-success); background: var(--color-success-bg); }
+.resum-panel--seguiment { border-left-color: var(--color-warning); background: var(--color-warning-bg); }
+.resum-panel--revisio { border-left-color: var(--color-danger); background: var(--color-danger-bg); }
+.resum-titol { margin: 0 0 .75rem; font-size: 1rem; }
+.resum-hint, .resum-detail { margin: 0; color: var(--color-text-muted); font-size: .875rem; }
+.resum-grid { display: flex; flex-wrap: wrap; gap: 1rem 1.5rem; margin-bottom: .75rem; }
+.resum-item { display: flex; min-width: 75px; flex-direction: column; align-items: center; }
+.resum-num { font-size: 1.7rem; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+.resum-label { margin-top: .2rem; color: var(--color-text-muted); font-size: .72rem; text-align: center; }
+.resum-item--revisio .resum-num { color: var(--color-danger); }
+.resum-recomanacio { margin: 0 0 .4rem; font-size: .875rem; font-weight: 650; }
 
-.instruccions-toggle[aria-expanded="true"] .instruccions-toggle-icon {
-    transform: rotate(180deg);
-}
-
-.instruccions-contingut {
-    margin-top: 1rem;
-    border-top: 1px solid var(--color-border);
-    padding-top: 1rem;
-    overflow: hidden;
-}
-
-/* --------------------------------------------------------------------------
-   Camp d'observacions
-   -------------------------------------------------------------------------- */
-textarea {
-    resize: vertical;
-    font-family: inherit;
-    font-size: .9rem;
-    line-height: 1.5;
-    display: block;
-}
-
-.comptador-observacions {
-    font-size: .72rem;
-    color: var(--color-text-muted);
-    text-align: right;
-    margin-top: .2rem;
-}
-
-.comptador-observacions.comptador--limit {
-    color: #e53e3e;
-    font-weight: 700;
-}
-
-/* --------------------------------------------------------------------------
-   Indicadors de progrés
-   -------------------------------------------------------------------------- */
-.progres-indicador {
-    font-size: .78rem;
-    color: var(--color-text-muted);
-    text-align: right;
-    margin: .3rem 0 0;
-}
-
-/* --------------------------------------------------------------------------
-   Botó "Nova valoració" + contenidor de botons
-   -------------------------------------------------------------------------- */
-.botons-accio {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 1rem;
-    flex-wrap: wrap;
-}
-
-.nova-valoracio-btn {
-    font-size: .875rem;
-    background: none;
-    border: 1px solid #cbd5e0;
-    border-radius: var(--radius-sm);
-    padding: .65rem 1.2rem;
-    cursor: pointer;
-    color: var(--color-text-subtle);
-    transition: border-color .15s ease, color .15s ease, background-color .15s ease;
-}
-
-.nova-valoracio-btn:hover {
-    border-color: var(--color-text-subtle);
-    color: var(--color-text);
-}
-
-.nova-valoracio-btn--confirmar {
-    border-color: #e53e3e;
-    color: #e53e3e;
-    background-color: #fff5f5;
-}
-
-.nova-valoracio-btn:focus-visible {
-    outline: 2px solid var(--color-primary);
-    outline-offset: 2px;
-}
-
-/* ==========================================================================
-   Fase 4 — Accessibilitat (a11y)
-   ========================================================================== */
-
-/* --------------------------------------------------------------------------
-   4.1 Focus visible explícit per a tots els elements interactius
-   -------------------------------------------------------------------------- */
-input[type="checkbox"]:focus-visible {
-    outline: 2px solid var(--color-primary);
-    outline-offset: 3px;
-    border-radius: 2px;
-}
-
-/* Assegurar que el focus és visible dins dels contenidors sticky */
-.fita-name-container:focus-within {
-    z-index: 990;
-}
-
-/* --------------------------------------------------------------------------
-   4.3 Icona d'estat de fita (indicador no basat únicament en color)
-   -------------------------------------------------------------------------- */
-.fita-estat-icona {
-    display: inline-block;
-    width: 14px;
-    flex-shrink: 0;
-    font-size: .75rem;
-    font-weight: 700;
-    text-align: center;
-    margin-right: 2px;
-    line-height: 1;
-}
-
-.fita-estat-icona--critica    { color: #dc2626; }
-.fita-estat-icona--preocupant { color: #ea580c; }
-.fita-estat-icona--atencio    { color: #ca8a04; }
-
-/* --------------------------------------------------------------------------
-   4.3 Badge d'edat dels signes d'alerta
-   -------------------------------------------------------------------------- */
-.signe-edat-badge {
-    margin-left: auto;
-    font-size: .65rem;
-    font-weight: 600;
-    color: var(--color-text-muted);
-    background-color: rgba(0, 0, 0, .06);
-    border-radius: 20px;
-    padding: .1rem .45rem;
-    flex-shrink: 0;
-    white-space: nowrap;
-}
-
-.alerta-activa .signe-edat-badge {
-    background-color: rgba(197, 48, 48, .12);
-    color: #9b2c2c;
-}
-
-/* Ajust del contenidor per alinear el badge a la dreta */
-.signe-alerta-item-container {
-    justify-content: flex-start;
-    gap: .5rem;
-}
-
-.signe-alerta-item-container span:first-of-type {
-    flex: 1;
-    min-width: 0;
-}
-
-/* ==========================================================================
-   5. TOGGLE VISTA MOBIL
-   ========================================================================== */
-
-.vista-toggle-container {
-    display: none;
-    justify-content: flex-end;
-    margin-bottom: .5rem;
-}
-
-@media (max-width: 640px) {
-    .vista-toggle-container {
-        display: flex;
-    }
-}
-
-.toggle-vista-btn {
-    font-size: .8rem;
-    padding: .3rem .8rem;
+.vista-toggle-container { display: flex; }
+.toggle-vista-btn, .toggle-signes-btn, .nova-valoracio-btn {
+    padding: .55rem .85rem;
     border: 1px solid var(--color-primary);
-    border-radius: 6px;
-    background: transparent;
+    border-radius: var(--radius-sm);
+    background: var(--color-surface);
     color: var(--color-primary);
     cursor: pointer;
-    font-weight: 600;
-    transition: background .2s, color .2s;
+    font-size: .82rem;
+    font-weight: 650;
 }
-
-.toggle-vista-btn:hover,
-.toggle-vista-btn[aria-pressed="true"] {
+.toggle-vista-btn:hover, .toggle-signes-btn:hover, .toggle-vista-btn[aria-pressed="true"], .toggle-signes-btn[aria-pressed="true"] {
     background: var(--color-primary);
     color: #fff;
 }
 
-/* Vista llista: oculta el grafic, mostra les fites com a llista */
-.vista-llista .fites-chart-container {
-    display: none;
-}
-
-.vista-llista .grafic-llegenda {
-    display: none;
-}
-
-.vista-llista #fitesLlistaContainer {
-    display: block;
-}
-
-#fitesLlistaContainer {
-    display: none;
-    margin-bottom: 1rem;
-}
-
-.llista-categoria {
-    margin-bottom: 1rem;
-}
-
-.llista-categoria-nom {
-    font-size: .95rem;
-    font-weight: 700;
-    color: var(--color-text);
-    background: var(--color-surface);
-    border-left: 4px solid var(--color-primary);
-    padding: .4rem .75rem;
-    margin-bottom: .4rem;
-    border-radius: 0 4px 4px 0;
-}
-
-.llista-fita-item {
+.grafic-llegenda {
     display: flex;
-    align-items: flex-start;
-    gap: .6rem;
-    padding: .45rem .75rem;
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
-    border-radius: 6px;
-    margin-bottom: .3rem;
-    cursor: pointer;
-    transition: background .15s;
-}
-
-.llista-fita-item:hover {
-    background: var(--color-bg);
-}
-
-.llista-fita-item input[type="checkbox"] {
-    margin-top: .15rem;
-    flex-shrink: 0;
-}
-
-.llista-fita-text {
-    flex: 1;
-    font-size: .85rem;
-    line-height: 1.4;
-}
-
-.llista-fita-edat {
-    font-size: .72rem;
+    flex-wrap: wrap;
+    gap: .5rem 1.25rem;
+    padding: .5rem .75rem;
     color: var(--color-text-muted);
-    white-space: nowrap;
-    margin-top: .1rem;
+    font-size: .78rem;
 }
+.grafic-llegenda-item { display: inline-flex; align-items: center; gap: .4rem; }
+.grafic-llegenda-swatch { display: inline-block; width: 28px; height: 10px; border-radius: 3px; }
+.grafic-llegenda-swatch--p50 { background: #7dd3fc; }
+.grafic-llegenda-swatch--p75 { background: #0284c7; }
+.grafic-llegenda-swatch--edat { width: 3px; height: 16px; background: #dc2626; }
 
-.llista-fita-item--marcada {
-    background: #fef9c3;
-    border-color: #ca8a04;
+.fites-chart-container {
+    position: relative;
+    max-height: 70vh;
+    overflow: auto;
+    overscroll-behavior: contain;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-sm);
 }
-
-.llista-fita-item--marcada:hover {
-    background: #fef08a;
+.timeline-header { display: flex; position: sticky; top: 0; z-index: 990; min-width: fit-content; border-bottom: 1px solid var(--color-border); background: var(--color-surface); }
+.timeline-header-space { position: sticky; left: 0; z-index: 995; width: var(--left-column-width); min-width: var(--left-column-width); border-right: 1px solid var(--color-border); background: var(--color-surface); }
+.timeline-month { width: var(--month-col-width); min-width: var(--month-col-width); padding: .45rem 0; border-left: 1px solid var(--color-border); color: var(--color-text-muted); font-size: .72rem; text-align: center; font-variant-numeric: tabular-nums; }
+#categoriesContainer { position: relative; min-width: fit-content; padding-top: .5rem; }
+.category-row { margin-bottom: .75rem; padding-bottom: .5rem; border-bottom: 1px dashed var(--color-border); content-visibility: auto; contain-intrinsic-size: auto 500px; }
+.category-row-title, .category-instruction-text {
+    position: sticky;
+    left: 0;
+    z-index: 980;
+    width: var(--left-column-width);
+    min-width: var(--left-column-width);
+    margin: 0;
+    padding: .15rem .65rem;
+    border-right: 1px solid var(--color-border);
+    background: var(--color-surface);
 }
+.category-row-title { font-size: 1rem; }
+.category-instruction-text { padding-bottom: .5rem; color: var(--color-text-muted); font-size: .75rem; }
+.fita-row { display: flex; min-height: 63px; align-items: stretch; border-top: 1px solid rgba(215, 222, 232, .6); }
+.fita-name-container { position: sticky; left: 0; z-index: 970; display: flex; width: var(--left-column-width); min-width: var(--left-column-width); flex-direction: column; justify-content: center; gap: .35rem; padding: .45rem .65rem; border-right: 1px solid var(--color-border); background: var(--color-surface); }
+.fita-name-heading { display: flex; min-width: 0; align-items: center; gap: .35rem; }
+.fita-name-text { min-width: 0; overflow-wrap: anywhere; font-size: .78rem; font-weight: 650; }
+.fita-estat-icona { width: 16px; flex: 0 0 16px; font-weight: 800; text-align: center; }
+.fita-estat-icona--assolida { color: var(--color-success); }
+.fita-estat-icona--no_assolida { color: var(--color-danger); }
+.fita-estat-select, .signe-estat-select { min-height: 34px; padding: .25rem 2rem .25rem .5rem; font-size: .75rem; }
+.fita-estat-select { width: 100%; }
+.fita-info-btn { display: inline-grid; width: 28px; min-width: 28px; min-height: 28px; place-items: center; padding: 0; border: 1px solid var(--color-border); border-radius: 50%; background: var(--color-surface); color: var(--color-primary); cursor: pointer; font: 700 .75rem/1 serif; }
+.fita-info-btn:hover { border-color: var(--color-primary); background: #eef2ff; }
+.fita-bars-outer-container { position: relative; flex: 1; min-width: 0; }
+.fita-bars-container { position: relative; height: 100%; }
+.fita-bar { position: absolute; top: 50%; display: flex; height: 24px; overflow: hidden; border-radius: 5px; transform: translateY(-50%); }
+.fita-bar-segment1 { height: 100%; background: #7dd3fc; }
+.fita-bar-segment2 { height: 100%; background: #0284c7; }
+.fita-assolida .fita-name-container { background: var(--color-success-bg); }
+.fita-no-assolida .fita-name-container { background: #fff8e6; }
+.fita-no-valorable .fita-name-container { background: #f1f5f9; }
+.fita-supera-p95 .fita-name-container { border-left: 4px solid var(--color-danger); background: var(--color-danger-bg); }
+.age-line { position: absolute; z-index: 996; display: none; width: 3px; background: #dc2626; pointer-events: none; }
+#verticalGuideLinesContainer { position: absolute; z-index: 0; pointer-events: none; }
+.vertical-guide-line { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--color-border); }
 
-/* ==========================================================================
-   6. MODE FOSC (prefers-color-scheme: dark)
-   ========================================================================== */
+.progres-indicador { margin: .35rem 0 0; color: var(--color-text-muted); font-size: .78rem; text-align: right; font-variant-numeric: tabular-nums; }
+
+.signe-alerta-item-container { display: grid; min-width: 0; grid-template-columns: minmax(0, 1fr) auto; gap: .5rem; align-items: center; padding: .75rem; border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--color-surface); }
+.signe-text-wrapper { min-width: 0; }
+.signe-heading { display: flex; min-width: 0; align-items: flex-start; gap: .4rem; font-size: .82rem; font-weight: 650; }
+.signe-heading > span:first-child { min-width: 0; flex: 1; overflow-wrap: anywhere; }
+.signe-area { display: block; margin-top: .2rem; color: var(--color-text-muted); font-size: .7rem; }
+.signe-edat-badge { flex: 0 0 auto; padding: .1rem .4rem; border-radius: 999px; background: #eef2f7; color: var(--color-text-muted); font-size: .65rem; font-variant-numeric: tabular-nums; }
+.signe-estat-select { grid-column: 1 / -1; width: 100%; }
+.signe-observat { border-color: #fda29b; background: var(--color-danger-bg); }
+.signe-no-rellevant:not(.signe-forcat-visible) { display: none; }
+.alerta-activa .signe-edat-badge { background: #fee4e2; color: var(--color-danger); }
+
+.tooltip { position: absolute; z-index: 10000; max-width: min(340px, calc(100vw - 2rem)); padding: .75rem 1rem; border-radius: var(--radius-sm); background: #111827; color: #fff; box-shadow: var(--shadow-md); font-size: .82rem; line-height: 1.5; pointer-events: none; overflow-wrap: anywhere; }
+
+#fitesLlistaContainer { display: none; margin-bottom: 1rem; }
+.vista-llista #fitesLlistaContainer { display: block; }
+.vista-llista .fites-chart-container, .vista-llista .grafic-llegenda { display: none; }
+.llista-categoria { margin-bottom: 1rem; }
+.llista-categoria-nom { margin: 0 0 .4rem; padding: .5rem .75rem; border-left: 4px solid var(--color-primary); background: var(--color-surface); font-size: 1rem; }
+.llista-fita-item { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .5rem; align-items: center; margin-bottom: .35rem; padding: .65rem .75rem; border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--color-surface); }
+.llista-fita-text { min-width: 0; font-size: .85rem; overflow-wrap: anywhere; }
+.llista-fita-edat { margin-top: .15rem; color: var(--color-text-muted); font-size: .72rem; font-variant-numeric: tabular-nums; }
+.llista-fita-item .fita-estat-select { grid-column: 1 / -1; }
+.llista-fita-item[data-estat="assolida"] { background: var(--color-success-bg); }
+.llista-fita-item[data-estat="no_assolida"] { background: #fff8e6; }
+.llista-fita-item[data-estat="no_valorable"] { background: #f1f5f9; }
+.llista-fita-item--supera-p95 { border-left: 4px solid var(--color-danger); background: var(--color-danger-bg) !important; }
+
+.botons-accio { display: flex; flex-wrap: wrap; justify-content: center; gap: .75rem; }
+.nova-valoracio-btn { border-color: var(--color-border); color: var(--color-text); }
+.nova-valoracio-btn:hover { border-color: var(--color-text-muted); background: #eef2f7; }
+.nova-valoracio-btn--confirmar { border-color: var(--color-danger); background: var(--color-danger-bg); color: var(--color-danger); }
+#desarPdfBtn { padding: .7rem 1.15rem; border: 1px solid var(--color-primary); border-radius: var(--radius-sm); background: var(--color-primary); color: #fff; cursor: pointer; font-weight: 700; }
+#desarPdfBtn:hover:not(:disabled) { background: var(--color-primary-hover); }
+#desarPdfBtn:disabled { opacity: .7; cursor: wait; }
+#desarPdfBtn.pdf-btn--ok { border-color: var(--color-success); background: var(--color-success); }
+#desarPdfBtn.pdf-btn--error { border-color: var(--color-danger); background: var(--color-danger); }
+
+@media (min-width: 640px) {
+    .sm\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (min-width: 768px) {
+    body.p-4 { padding: 1.5rem; }
+    .md\:text-3xl { font-size: 1.875rem; }
+    .md\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 768px) {
+    :root { --left-column-width: 220px; }
+    .section-heading-row, .signes-cap { align-items: flex-start; flex-direction: column; }
+    .fita-name-text { font-size: .74rem; }
+}
+@media (max-width: 640px) {
+    body.p-4 { padding: .75rem; }
+    .fites-chart-container, .grafic-llegenda { display: none; }
+    #fitesLlistaContainer { display: block; }
+    .vista-llista .fites-chart-container { display: block; }
+    .vista-llista .grafic-llegenda { display: flex; }
+    .vista-llista #fitesLlistaContainer { display: none; }
+    .resum-grid { justify-content: space-around; }
+    .botons-accio { align-items: stretch; flex-direction: column; }
+    .botons-accio button { width: 100%; min-height: 46px; }
+}
 
 @media (prefers-color-scheme: dark) {
     :root {
-        --color-primary:      #818cf8;
-        --color-primary-dark: #6366f1;
-        --color-bg:           #111827;
-        --color-surface:      #1f2937;
-        --color-border:       #374151;
-        --color-text:         #f3f4f6;
-        --color-text-muted:   #9ca3af;
-        --color-text-light:   #6b7280;
+        color-scheme: dark;
+        --color-primary: #a5b4fc;
+        --color-primary-hover: #c7d2fe;
+        --color-bg: #0f172a;
+        --color-surface: #172033;
+        --color-surface-muted: #1e293b;
+        --color-border: #3a475c;
+        --color-text: #eef2f7;
+        --color-text-muted: #b3bfce;
+        --color-danger: #fda29b;
+        --color-danger-bg: #3b1618;
+        --color-warning: #facc15;
+        --color-warning-bg: #382c0b;
+        --color-success: #6ce9a6;
+        --color-success-bg: #102e25;
     }
+    .font-container { background: #20264a; }
+    .avis-clinic { background: #382c0b; }
+    .privacy-inline { color: #fde68a; }
+    input::placeholder, textarea::placeholder { color: #98a4b5; }
+    .fita-info-btn:hover { background: #283255; }
+    .signe-edat-badge { background: #293449; }
+    .alerta-activa .signe-edat-badge { background: #542326; }
+    .fita-no-valorable .fita-name-container, .llista-fita-item[data-estat="no_valorable"] { background: #273244; }
+    .nova-valoracio-btn:hover { background: #273244; }
+    .tooltip { background: #020617; border: 1px solid #475569; }
+}
 
-    body {
-        background-color: var(--color-bg);
-        color: var(--color-text);
-    }
-
-    input, textarea, select {
-        background-color: #374151;
-        color: var(--color-text);
-        border-color: var(--color-border);
-    }
-
-    input::placeholder, textarea::placeholder {
-        color: var(--color-text-light);
-    }
-
-    .text-gray-800 { color: #e5e7eb; }
-    .text-gray-700 { color: #d1d5db; }
-    .text-gray-600 { color: #9ca3af; }
-
-    .info-container,
-    .input-container,
-    .legal-container {
-        background-color: var(--color-surface);
-        border-color: var(--color-border);
-    }
-
-    .resum-panel {
-        background-color: var(--color-surface);
-        color: var(--color-text);
-    }
-
-    .resum-panel--ok     { border-left-color: #34d399; }
-    .resum-panel--alerta { border-left-color: #fbbf24; }
-    .resum-panel--greu   { border-left-color: #f87171; }
-
-    .timeline-header {
-        background-color: var(--color-surface);
-        border-bottom-color: var(--color-border);
-    }
-
-    .month-label {
-        color: var(--color-text-muted);
-    }
-
-    .fita-name-container {
-        background-color: var(--color-surface);
-        border-right-color: var(--color-border);
-        color: var(--color-text);
-    }
-
-    .fita-row {
-        border-bottom-color: var(--color-border);
-    }
-
-    .fita-row:hover .fita-name-container,
-    .fita-row:hover {
-        background-color: #374151;
-    }
-
-    .categoria-header {
-        background-color: #1a2744;
-        color: #a5b4fc;
-    }
-
-    .fita-seleccionada.fita-critica    { background-color: #450a0a; }
-    .fita-seleccionada.fita-preocupant { background-color: #431407; }
-    .fita-seleccionada.fita-atencio    { background-color: #422006; }
-
-    .fita-seleccionada.fita-critica    .fita-name-container { background-color: #450a0a; }
-    .fita-seleccionada.fita-preocupant .fita-name-container { background-color: #431407; }
-    .fita-seleccionada.fita-atencio    .fita-name-container { background-color: #422006; }
-
-    .vertical-guide-line {
-        background-color: rgba(255, 255, 255, .06);
-    }
-
-    .bg-white {
-        background-color: var(--color-surface) !important;
-    }
-
-    .signe-alerta-label {
-        color: var(--color-text);
-    }
-
-    .alerta-activa {
-        background-color: rgba(239, 68, 68, .15);
-        border-color: rgba(239, 68, 68, .4);
-    }
-
-    .signe-edat-badge {
-        background-color: rgba(255, 255, 255, .08);
-        color: var(--color-text-muted);
-    }
-
-    #desarPdfBtn {
-        background-color: var(--color-primary-dark);
-    }
-
-    #desarPdfBtn:hover {
-        background-color: #4f46e5;
-    }
-
-    .nova-valoracio-btn {
-        border-color: var(--color-border);
-        color: var(--color-text-muted);
-    }
-
-    .nova-valoracio-btn:hover {
-        background-color: #374151;
-    }
-
-    .toggle-signes-btn {
-        border-color: var(--color-border);
-        color: var(--color-text-muted);
-        background: transparent;
-    }
-
-    .grafic-llegenda {
-        background-color: var(--color-surface);
-        border-color: var(--color-border);
-    }
-
-    .llista-categoria-nom {
-        background: var(--color-surface);
-        color: var(--color-text);
-    }
-
-    .llista-fita-item {
-        background: var(--color-surface);
-        border-color: var(--color-border);
-        color: var(--color-text);
-    }
-
-    .llista-fita-item:hover {
-        background: #374151;
-    }
-
-    .llista-fita-item--marcada {
-        background: #422006;
-        border-color: #92400e;
-    }
-
-    .llista-fita-item--marcada:hover {
-        background: #4d2d0f;
-    }
-
-    .tooltip {
-        background-color: #374151;
-        color: var(--color-text);
-        border-color: var(--color-border);
-    }
-
-    .instruccions-contingut {
-        color: var(--color-text);
-    }
-
-    .comptador-observacions {
-        color: var(--color-text-muted);
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        scroll-behavior: auto !important;
+        transition-duration: .01ms !important;
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
     }
 }
