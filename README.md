@@ -6,7 +6,7 @@ Eina web local de suport a l’observació professional del desenvolupament infa
 
 ## Funcions principals
 
-- Registre triestatal de cada fita: assolida, no assolida, no valorable o no explorada.
+- Marcatge àgil amb caselles de les fites no assolides; les fites desmarcades no s’interpreten com a assolides.
 - Registre diferenciat dels signes observats, no observats i no valorables.
 - Visualització dels percentils P50, P75 i P95 de la mostra Haizea-Llevant.
 - Càlcul d’edat cronològica i edat corregida per prematuritat per sota dels 18 mesos.

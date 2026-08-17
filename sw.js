@@ -1,6 +1,6 @@
 'use strict';
 
-const CACHE_NAME = 'haizeallevant-2026.08.1';
+const CACHE_NAME = 'haizeallevant-2026.08.2';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',

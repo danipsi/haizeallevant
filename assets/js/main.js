@@ -128,7 +128,7 @@ function recalcularEdat() {
 function teValoracioEnCurs() {
     if (document.getElementById('identificadorInfant')?.value) return true;
     if (document.getElementById('observacions')?.value || document.getElementById('preocupacionsFamilia')?.value) return true;
-    if (document.querySelector('.fita-estat-select option:checked:not([value=""])')) return true;
+    if (document.querySelector('.fita-estat-checkbox:checked')) return true;
     if (document.querySelector('.signe-estat-select option:checked:not([value=""])')) return true;
     return false;
 }
@@ -148,7 +148,8 @@ function realitzarReset() {
         .forEach(id => { const element = document.getElementById(id); if (element) element.value = ''; });
     document.getElementById('infantPrematur').checked = false;
     document.getElementById('setmanesGestacioWrapper').hidden = true;
-    document.querySelectorAll('.fita-estat-select, .signe-estat-select').forEach(select => { select.value = ''; });
+    document.querySelectorAll('.fita-estat-checkbox').forEach(checkbox => { checkbox.checked = false; });
+    document.querySelectorAll('.signe-estat-select').forEach(select => { select.value = ''; });
     document.getElementById('comptadorObs').textContent = '0';
     document.getElementById('comptadorObsWrapper').classList.remove('comptador--limit');
     ['errorDataNaixement', 'errorEdatInfant', 'errorSetmanesGestacio'].forEach(id => mostrarErrorCamp(id));

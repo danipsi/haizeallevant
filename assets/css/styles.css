@@ -246,6 +246,17 @@ input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-
 .timeline-header-space { position: sticky; left: 0; z-index: 995; width: var(--left-column-width); min-width: var(--left-column-width); border-right: 1px solid var(--color-border); background: var(--color-surface); }
 .timeline-month { width: var(--month-col-width); min-width: var(--month-col-width); padding: .45rem 0; border-left: 1px solid var(--color-border); color: var(--color-text-muted); font-size: .72rem; text-align: center; font-variant-numeric: tabular-nums; }
 #categoriesContainer { position: relative; min-width: fit-content; padding-top: .5rem; }
+#categoriesContainer::before {
+    position: absolute;
+    z-index: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: var(--left-column-width);
+    background: repeating-linear-gradient(to right, var(--color-border) 0 1px, transparent 1px var(--month-col-width));
+    content: '';
+    pointer-events: none;
+}
 .category-row { margin-bottom: .75rem; padding-bottom: .5rem; border-bottom: 1px dashed var(--color-border); content-visibility: auto; contain-intrinsic-size: auto 500px; }
 .category-row-title, .category-instruction-text {
     position: sticky;
@@ -265,10 +276,10 @@ input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-
 .fita-name-heading { display: flex; min-width: 0; align-items: center; gap: .35rem; }
 .fita-name-text { min-width: 0; overflow-wrap: anywhere; font-size: .78rem; font-weight: 650; }
 .fita-estat-icona { width: 16px; flex: 0 0 16px; font-weight: 800; text-align: center; }
-.fita-estat-icona--assolida { color: var(--color-success); }
 .fita-estat-icona--no_assolida { color: var(--color-danger); }
-.fita-estat-select, .signe-estat-select { min-height: 34px; padding: .25rem 2rem .25rem .5rem; font-size: .75rem; }
-.fita-estat-select { width: 100%; }
+.signe-estat-select { min-height: 34px; padding: .25rem 2rem .25rem .5rem; font-size: .75rem; }
+.fita-checkbox-label { display: inline-flex; width: fit-content; min-height: 34px; align-items: center; gap: .45rem; cursor: pointer; font-size: .75rem; font-weight: 650; }
+.fita-estat-checkbox { width: 20px; height: 20px; margin: 0; padding: 0; accent-color: var(--color-danger); cursor: pointer; }
 .fita-info-btn { display: inline-grid; width: 28px; min-width: 28px; min-height: 28px; place-items: center; padding: 0; border: 1px solid var(--color-border); border-radius: 50%; background: var(--color-surface); color: var(--color-primary); cursor: pointer; font: 700 .75rem/1 serif; }
 .fita-info-btn:hover { border-color: var(--color-primary); background: #eef2ff; }
 .fita-bars-outer-container { position: relative; flex: 1; min-width: 0; }
@@ -276,13 +287,9 @@ input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-
 .fita-bar { position: absolute; top: 50%; display: flex; height: 24px; overflow: hidden; border-radius: 5px; transform: translateY(-50%); }
 .fita-bar-segment1 { height: 100%; background: #7dd3fc; }
 .fita-bar-segment2 { height: 100%; background: #0284c7; }
-.fita-assolida .fita-name-container { background: var(--color-success-bg); }
 .fita-no-assolida .fita-name-container { background: #fff8e6; }
-.fita-no-valorable .fita-name-container { background: #f1f5f9; }
 .fita-supera-p95 .fita-name-container { border-left: 4px solid var(--color-danger); background: var(--color-danger-bg); }
 .age-line { position: absolute; z-index: 996; display: none; width: 3px; background: #dc2626; pointer-events: none; }
-#verticalGuideLinesContainer { position: absolute; z-index: 0; pointer-events: none; }
-.vertical-guide-line { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--color-border); }
 
 .progres-indicador { margin: .35rem 0 0; color: var(--color-text-muted); font-size: .78rem; text-align: right; font-variant-numeric: tabular-nums; }
 
@@ -307,10 +314,8 @@ input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-
 .llista-fita-item { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .5rem; align-items: center; margin-bottom: .35rem; padding: .65rem .75rem; border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--color-surface); }
 .llista-fita-text { min-width: 0; font-size: .85rem; overflow-wrap: anywhere; }
 .llista-fita-edat { margin-top: .15rem; color: var(--color-text-muted); font-size: .72rem; font-variant-numeric: tabular-nums; }
-.llista-fita-item .fita-estat-select { grid-column: 1 / -1; }
-.llista-fita-item[data-estat="assolida"] { background: var(--color-success-bg); }
+.llista-fita-checkbox-label { grid-column: 1 / -1; }
 .llista-fita-item[data-estat="no_assolida"] { background: #fff8e6; }
-.llista-fita-item[data-estat="no_valorable"] { background: #f1f5f9; }
 .llista-fita-item--supera-p95 { border-left: 4px solid var(--color-danger); background: var(--color-danger-bg) !important; }
 
 .botons-accio { display: flex; flex-wrap: wrap; justify-content: center; gap: .75rem; }
@@ -373,7 +378,6 @@ input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-
     .fita-info-btn:hover { background: #283255; }
     .signe-edat-badge { background: #293449; }
     .alerta-activa .signe-edat-badge { background: #542326; }
-    .fita-no-valorable .fita-name-container, .llista-fita-item[data-estat="no_valorable"] { background: #273244; }
     .nova-valoracio-btn:hover { background: #273244; }
     .tooltip { background: #020617; border: 1px solid #475569; }
 }

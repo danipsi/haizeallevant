@@ -93,20 +93,6 @@ function crearTextTooltipFita(fita) {
         + `<br><small>${escaparHtml(fita.id)} · ${escaparHtml(font?.etiqueta || fita.font)}</small>`;
 }
 
-function crearOpcionsEstatFita(select) {
-    [
-        ['', 'No explorada'],
-        ['assolida', 'Assolida'],
-        ['no_assolida', 'No assolida'],
-        ['no_valorable', 'No valorable']
-    ].forEach(([valor, etiqueta]) => {
-        const opcio = document.createElement('option');
-        opcio.value = valor;
-        opcio.textContent = etiqueta;
-        select.appendChild(opcio);
-    });
-}
-
 function crearOpcionsEstatSigne(select) {
     [
         ['', 'No explorat'],
@@ -122,18 +108,18 @@ function crearOpcionsEstatSigne(select) {
 }
 
 function getEstatFita(fitaId) {
-    return document.getElementById(`estat-${fitaId}`)?.value || '';
+    return document.getElementById(`estat-${fitaId}`)?.checked ? 'no_assolida' : '';
 }
 
 function getEstatSigne(signeId) {
     return document.getElementById(`estat-signe-${signeId}`)?.value || '';
 }
 
-function sincronitzarEstatFita(fita, valor, origen) {
+function sincronitzarEstatFita(fita, marcat, origen) {
     const principal = document.getElementById(`estat-${fita.id}`);
     const llista = document.getElementById(`llista-estat-${fita.id}`);
-    if (principal && origen !== principal) principal.value = valor;
-    if (llista && origen !== llista) llista.value = valor;
+    if (principal && origen !== principal) principal.checked = marcat;
+    if (llista && origen !== llista) llista.checked = marcat;
     actualitzarEstatFitaRow(document.getElementById(`fita-row-${fita.id}`), fita);
     actualitzarItemLlista(document.getElementById(`llista-item-${fita.id}`), fita);
     actualitzarResum();
@@ -146,15 +132,13 @@ function actualitzarEstatFitaRow(fitaRow, fita) {
         ? classificarFitaNoAssolida(fita, obtenirEdatAvaluacioMesos())
         : null;
 
-    fitaRow.classList.remove('fita-assolida', 'fita-no-assolida', 'fita-no-valorable', 'fita-supera-p95');
+    fitaRow.classList.remove('fita-no-assolida', 'fita-supera-p95');
     if (estatValoracio) fitaRow.classList.add(`fita-${estatValoracio.replace('_', '-')}`);
     if (classificacio === 'despres_p95') fitaRow.classList.add('fita-supera-p95');
 
     const icona = fitaRow.querySelector('.fita-estat-icona');
     if (icona) {
-        icona.textContent = estatValoracio === 'assolida' ? '✓'
-            : estatValoracio === 'no_assolida' ? (classificacio === 'despres_p95' ? '!' : '○')
-                : estatValoracio === 'no_valorable' ? '—' : '';
+        icona.textContent = classificacio === 'despres_p95' ? '!' : '';
         icona.className = `fita-estat-icona${estatValoracio ? ` fita-estat-icona--${estatValoracio}` : ''}`;
     }
 }
@@ -173,10 +157,7 @@ function actualitzarResum() {
     if (!resumPanel) return;
 
     const edatMesos = obtenirEdatAvaluacioMesos();
-    let explorades = 0;
-    let assolides = 0;
     let noAssolides = 0;
-    let noValorables = 0;
     let despresP95 = 0;
     let frangesTruncades = 0;
 
@@ -184,9 +165,6 @@ function actualitzarResum() {
         categoria.fites.forEach(fita => {
             const estat = getEstatFita(fita.id);
             if (!estat) return;
-            explorades += 1;
-            if (estat === 'assolida') assolides += 1;
-            if (estat === 'no_valorable') noValorables += 1;
             if (estat === 'no_assolida') {
                 noAssolides += 1;
                 const classificacio = classificarFitaNoAssolida(fita, edatMesos);
@@ -205,7 +183,7 @@ function actualitzarResum() {
     });
 
     const preocupacions = document.getElementById('preocupacionsFamilia')?.value.trim() || '';
-    const hiHaDades = explorades > 0 || signesExplorats > 0 || preocupacions.length > 0;
+    const hiHaDades = noAssolides > 0 || signesExplorats > 0 || preocupacions.length > 0;
     let nivell = 'buit';
     if (hiHaDades) nivell = despresP95 > 0 || signesObservats > 0 ? 'revisio' : (noAssolides > 0 || preocupacions ? 'seguiment' : 'sense-alertes');
 
@@ -213,13 +191,10 @@ function actualitzarResum() {
     let html = `<h2 id="resumTitol" class="resum-titol">Resum descriptiu · ${edatText}</h2>`;
 
     if (!hiHaDades) {
-        html += '<p class="resum-hint">Exploreu les fites i els signes d’alerta per obtenir un resum. Els camps buits no es consideren assolits ni absents.</p>';
+        html += '<p class="resum-hint">Marqueu les fites no assolides i exploreu els signes d’alerta per obtenir un resum. Les fites desmarcades no es consideren assolides.</p>';
     } else {
         html += '<div class="resum-grid">';
-        html += `<div class="resum-item"><span class="resum-num">${explorades}</span><span class="resum-label">fites explorades</span></div>`;
-        html += `<div class="resum-item"><span class="resum-num">${assolides}</span><span class="resum-label">assolides</span></div>`;
         html += `<div class="resum-item"><span class="resum-num">${noAssolides}</span><span class="resum-label">no assolides</span></div>`;
-        html += `<div class="resum-item"><span class="resum-num">${noValorables}</span><span class="resum-label">no valorables</span></div>`;
         html += `<div class="resum-item${signesObservats ? ' resum-item--revisio' : ''}"><span class="resum-num">${signesObservats}</span><span class="resum-label">signes observats</span></div>`;
         html += '</div>';
 
@@ -238,7 +213,7 @@ function actualitzarResum() {
 
     const totalFites = dadesDesenvolupament.categories.reduce((total, categoria) => total + categoria.fites.length, 0);
     const progressFites = document.getElementById('progressFites');
-    if (progressFites) progressFites.textContent = `Fites explorades: ${explorades} de ${totalFites}`;
+    if (progressFites) progressFites.textContent = `Fites no assolides marcades: ${noAssolides} de ${totalFites}`;
     const progressSignes = document.getElementById('progressSignes');
     if (progressSignes) progressSignes.textContent = `Signes explorats: ${signesExplorats} de ${dadesDesenvolupament.signesAlerta.length}`;
 
@@ -291,7 +266,7 @@ function initTaula() {
 
         const instruccio = document.createElement('p');
         instruccio.className = 'category-instruction-text';
-        instruccio.textContent = 'Seleccioneu l’estat de cada fita';
+        instruccio.textContent = 'Marqueu només les fites no assolides';
 
         const wrapper = document.createElement('div');
         [...categoria.fites].sort((a, b) => a.edat_50 - b.edat_50).forEach(fita => {
@@ -312,18 +287,20 @@ function initTaula() {
             nom.textContent = fita.nomFita;
             capNom.append(icona, nom, crearBotoInformacio(tooltip, fita.nomFita));
 
-            const labelSelect = document.createElement('label');
-            labelSelect.className = 'sr-only';
-            labelSelect.htmlFor = `estat-${fita.id}`;
-            labelSelect.textContent = `Estat de la fita ${fita.nomFita}`;
-            const select = document.createElement('select');
-            select.id = `estat-${fita.id}`;
-            select.name = `estat-${fita.id}`;
-            select.className = 'fita-estat-select';
-            select.dataset.fitaId = fita.id;
-            crearOpcionsEstatFita(select);
-            select.addEventListener('change', () => sincronitzarEstatFita(fita, select.value, select));
-            nomContainer.append(capNom, labelSelect, select);
+            const labelCheckbox = document.createElement('label');
+            labelCheckbox.className = 'fita-checkbox-label';
+            labelCheckbox.htmlFor = `estat-${fita.id}`;
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.id = `estat-${fita.id}`;
+            checkbox.name = `estat-${fita.id}`;
+            checkbox.className = 'fita-estat-checkbox';
+            checkbox.dataset.fitaId = fita.id;
+            const textCheckbox = document.createElement('span');
+            textCheckbox.textContent = 'No assolida';
+            labelCheckbox.append(checkbox, textCheckbox);
+            checkbox.addEventListener('change', () => sincronitzarEstatFita(fita, checkbox.checked, checkbox));
+            nomContainer.append(capNom, labelCheckbox);
 
             const outerBars = document.createElement('div');
             outerBars.className = 'fita-bars-outer-container';
@@ -419,15 +396,17 @@ function initLlistaVista() {
             text.append(nom, edats);
 
             const label = document.createElement('label');
-            label.className = 'sr-only';
+            label.className = 'fita-checkbox-label llista-fita-checkbox-label';
             label.htmlFor = `llista-estat-${fita.id}`;
-            label.textContent = `Estat de la fita ${fita.nomFita}`;
-            const select = document.createElement('select');
-            select.id = `llista-estat-${fita.id}`;
-            select.className = 'fita-estat-select';
-            crearOpcionsEstatFita(select);
-            select.addEventListener('change', () => sincronitzarEstatFita(fita, select.value, select));
-            item.append(text, crearBotoInformacio(crearTextTooltipFita(fita), fita.nomFita), label, select);
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.id = `llista-estat-${fita.id}`;
+            checkbox.className = 'fita-estat-checkbox';
+            const textCheckbox = document.createElement('span');
+            textCheckbox.textContent = 'No assolida';
+            label.append(checkbox, textCheckbox);
+            checkbox.addEventListener('change', () => sincronitzarEstatFita(fita, checkbox.checked, checkbox));
+            item.append(text, crearBotoInformacio(crearTextTooltipFita(fita), fita.nomFita), label);
             seccio.appendChild(item);
         });
         container.appendChild(seccio);
@@ -439,7 +418,7 @@ function actualitzarVistaLlista() {
         categoria.fites.forEach(fita => {
             const principal = document.getElementById(`estat-${fita.id}`);
             const llista = document.getElementById(`llista-estat-${fita.id}`);
-            if (principal && llista && llista.value !== principal.value) llista.value = principal.value;
+            if (principal && llista && llista.checked !== principal.checked) llista.checked = principal.checked;
             actualitzarItemLlista(document.getElementById(`llista-item-${fita.id}`), fita);
         });
     });
@@ -449,26 +428,13 @@ function actualitzarVisualitzacio() {
     const timelineHeader = document.getElementById('timelineHeader');
     const categoriesContainer = document.getElementById('categoriesContainer');
     const ageLine = document.getElementById('ageLine');
-    const guiesContainer = document.getElementById('verticalGuideLinesContainer');
     const signesContainer = document.getElementById('signesAlertaContainer');
-    if (!timelineHeader || !categoriesContainer || !ageLine || !guiesContainer) return;
+    if (!timelineHeader || !categoriesContainer || !ageLine) return;
 
     const edatMesos = obtenirEdatAvaluacioMesos();
     const headerHeight = timelineHeader.offsetHeight;
     const categoriesHeight = categoriesContainer.offsetHeight;
     const offset = getCurrentTimelineStartOffset();
-    const ampladaTimeline = MAX_MESOS_GRAFIC * MONTH_COLUMN_WIDTH_PX;
-
-    guiesContainer.innerHTML = '';
-    Object.assign(guiesContainer.style, {
-        top: `${headerHeight}px`, height: `${categoriesHeight}px`, width: `${ampladaTimeline}px`, left: `${offset}px`
-    });
-    for (let mes = 0; mes < MAX_MESOS_GRAFIC; mes += 1) {
-        const guia = document.createElement('div');
-        guia.className = 'vertical-guide-line';
-        guia.style.left = `${mes * MONTH_COLUMN_WIDTH_PX}px`;
-        guiesContainer.appendChild(guia);
-    }
 
     dadesDesenvolupament.categories.forEach(categoria => {
         categoria.fites.forEach(fita => {

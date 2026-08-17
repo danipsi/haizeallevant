@@ -106,14 +106,10 @@ function generarResumPDF() {
         y = afegirLinies(doc, METADADES_INSTRUMENT.avis, y, context);
 
         const fitesNoAssolides = [];
-        const fitesNoValorables = [];
-        let fitesExplorades = 0;
         dadesDesenvolupament.categories.forEach(categoria => {
             categoria.fites.forEach(fita => {
                 const estat = getEstatFita(fita.id);
-                if (estat) fitesExplorades += 1;
                 if (estat === 'no_assolida') fitesNoAssolides.push({ categoria: categoria.nom, fita });
-                if (estat === 'no_valorable') fitesNoValorables.push({ categoria: categoria.nom, fita });
             });
         });
 
@@ -130,22 +126,15 @@ function generarResumPDF() {
         y = afegirTitolSeccio(doc, 'Cobertura de la valoració', y, context);
         const totalFites = dadesDesenvolupament.categories.reduce((total, categoria) => total + categoria.fites.length, 0);
         const totalSignes = dadesDesenvolupament.signesAlerta.length;
-        y = afegirLinies(doc, `${fitesExplorades} de ${totalFites} fites explorades. ${signesExplorats} de ${totalSignes} signes d’alerta explorats. Els elements no explorats no s’interpreten com a assolits ni com a absents.`, y, context);
+        y = afegirLinies(doc, `${fitesNoAssolides.length} de ${totalFites} fites marcades com a no assolides. ${signesExplorats} de ${totalSignes} signes d’alerta explorats. Les fites desmarcades no s’interpreten com a assolides.`, y, context);
 
         y = afegirTitolSeccio(doc, 'Fites no assolides', y, context);
         if (!fitesNoAssolides.length) {
-            y = afegirLinies(doc, 'No s’han registrat fites com a no assolides entre les explorades.', y, context);
+            y = afegirLinies(doc, 'No s’han marcat fites com a no assolides.', y, context);
         } else {
             fitesNoAssolides.forEach(({ categoria, fita }) => {
                 const posicio = etiquetaPosicioPercentil(fita, edatAvaluacio);
                 y = afegirLinies(doc, `- ${fita.nomFita} (${categoria}; ${posicio}; ${fita.id})`, y, context, { sagnat: 2 });
-            });
-        }
-
-        if (fitesNoValorables.length) {
-            y = afegirTitolSeccio(doc, 'Fites no valorables', y, context);
-            fitesNoValorables.forEach(({ categoria, fita }) => {
-                y = afegirLinies(doc, `- ${fita.nomFita} (${categoria}; ${fita.id})`, y, context, { sagnat: 2 });
             });
         }
 
